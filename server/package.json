@@ -1,0 +1,18 @@
+{
+  "name": "thesisapp-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API for the Personal Academic Workspace",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.3",
+    "express": "^5.2.1",
+    "mysql2": "^3.24.4"
+  }
+}
