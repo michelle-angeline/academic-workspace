@@ -1,0 +1,320 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+.signin-page {
+  --primary: #00658d;
+  --primary-hover: #00557a;
+  --text: #131b2e;
+  --text-muted: #45474c;
+  --error: #ba1a1a;
+  --error-strong: #93000a;
+  --error-bg: #ffdad6;
+  --field-bg: #f4f6fa;
+  --field-error-bg: #fbf3f3;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 64px;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background: #faf8ff;
+}
+
+/* Soft colored glows behind the card (blue top, lavender left, mint bottom right) */
+.signin-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 45% 35% at 50% 0%, rgba(173, 216, 250, 0.55), transparent 70%),
+    radial-gradient(ellipse 30% 45% at 15% 55%, rgba(226, 220, 255, 0.6), transparent 70%),
+    radial-gradient(ellipse 30% 40% at 90% 70%, rgba(200, 240, 225, 0.6), transparent 70%);
+}
+
+.signin-page *,
+.signin-page *::before,
+.signin-page *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Top brand ---------- */
+.signin-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 92px;
+}
+
+.signin-brand__logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(19, 27, 46, 0.08);
+}
+
+.signin-brand__name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+}
+
+/* ---------- Card ---------- */
+.signin-card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  padding: 44px 32px 40px;
+  border-radius: 40px;
+  background: linear-gradient(180deg, #f3fafd 0%, #fbfcff 100%);
+  box-shadow:
+    0 24px 60px rgba(120, 140, 220, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  text-align: center;
+}
+
+/* Thin glowing accent line along the top edge */
+.signin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 40px;
+  right: 40px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #7cc8f0, transparent);
+}
+
+.signin-card__icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #e3f1fb;
+  color: var(--primary);
+  box-shadow: 0 0 24px rgba(124, 200, 240, 0.45);
+}
+
+.signin-card__title {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+}
+
+.signin-card__subtitle {
+  max-width: 380px;
+  margin: 8px auto 28px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* ---------- Error banner ---------- */
+.signin-alert {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  border-radius: 24px;
+  background: var(--error-bg);
+  box-shadow: 0 8px 20px rgba(186, 26, 26, 0.08);
+  text-align: left;
+}
+
+.signin-alert__icon {
+  flex-shrink: 0;
+  color: var(--error);
+}
+
+.signin-alert__title {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--error-strong);
+}
+
+.signin-alert__message {
+  margin: 0;
+  font-size: 12px;
+  color: var(--error-strong);
+}
+
+/* ---------- Form ---------- */
+.signin-form {
+  text-align: left;
+}
+
+.signin-field {
+  margin-bottom: 18px;
+}
+
+.signin-field__labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.signin-field__error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--error);
+}
+
+.signin-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 23px;
+  border: 1.5px solid transparent;
+  background: var(--field-bg);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.signin-input:focus-within {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.signin-input--error {
+  background: var(--field-error-bg);
+  border-color: #f6e4e4;
+}
+
+.signin-input--error:focus-within {
+  border-color: var(--error);
+}
+
+.signin-input__icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.signin-input__status {
+  flex-shrink: 0;
+  color: var(--error);
+}
+
+.signin-input input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.signin-input input::placeholder {
+  color: #9a9ca3;
+}
+
+.signin-input__password {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+}
+
+.signin-input__toggle {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.signin-input__toggle:hover {
+  color: var(--text);
+}
+
+/* ---------- Submit ---------- */
+.signin-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 54px;
+  margin-top: 40px;
+  border: none;
+  border-radius: 27px;
+  background: var(--primary);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 101, 141, 0.25);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.signin-submit:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.signin-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.signin-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* ---------- Footer ---------- */
+.signin-footer {
+  margin: 24px 0 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.signin-footer__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.signin-footer__link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 480px) {
+  .signin-brand {
+    margin-bottom: 40px;
+  }
+
+  .signin-card {
+    padding: 36px 20px 32px;
+    border-radius: 28px;
+  }
+}

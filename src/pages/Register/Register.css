@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+
+.register-page {
+  --primary: #00658d;
+  --primary-hover: #00557a;
+  --text: #131b2e;
+  --text-muted: #45474c;
+  --error: #ba1a1a;
+  --error-strong: #93000a;
+  --error-bg: #ffdad6;
+  --field-bg: #f2f4fb;
+  --field-error-bg: #fbf3f3;
+  --success: #0b7a55;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 64px;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background: linear-gradient(0deg, #faf8ff, #faf8ff), #ffffff;
+}
+
+/* Soft colored glows behind the card (blue top-left, lavender bottom-left, mint right) */
+.register-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 40% 35% at 35% 8%, rgba(173, 216, 250, 0.7), transparent 70%),
+    radial-gradient(ellipse 25% 35% at 22% 80%, rgba(230, 222, 255, 0.6), transparent 70%),
+    radial-gradient(ellipse 25% 40% at 85% 65%, rgba(200, 242, 225, 0.6), transparent 70%);
+}
+
+.register-page *,
+.register-page *::before,
+.register-page *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- Top brand ---------- */
+.register-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 96px;
+}
+
+.register-brand__logo {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(19, 27, 46, 0.08);
+}
+
+.register-brand__name {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+}
+
+/* ---------- Card ---------- */
+.register-card {
+  width: 100%;
+  max-width: 580px;
+  padding: 48px 48px 44px;
+  border-radius: 48px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafe 100%);
+  box-shadow:
+    0 24px 60px rgba(120, 140, 220, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+  text-align: center;
+}
+
+.register-card__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 2px solid #2a8cbf;
+  background: #fff;
+  color: var(--primary);
+  box-shadow: 0 0 18px rgba(124, 200, 240, 0.4);
+}
+
+.register-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #e4f3ef;
+  color: var(--success);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.register-card__badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.register-card__title {
+  margin: 10px 0 0;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+}
+
+.register-card__subtitle {
+  max-width: 380px;
+  margin: 8px auto 32px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* ---------- Error banner ---------- */
+.register-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  border-radius: 20px;
+  background: var(--error-bg);
+  text-align: left;
+}
+
+.register-alert__icon {
+  flex-shrink: 0;
+  color: var(--error);
+}
+
+.register-alert__message {
+  margin: 0;
+  font-size: 13px;
+  color: var(--error-strong);
+}
+
+/* ---------- Form ---------- */
+.register-form {
+  text-align: left;
+}
+
+.register-field {
+  margin-bottom: 18px;
+}
+
+.register-field__labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.register-field__hint {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e5f2fa;
+  color: var(--primary);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.register-field__error {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--error);
+  text-align: right;
+}
+
+.register-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 16px;
+  border-radius: 23px;
+  border: 1.5px solid transparent;
+  background: var(--field-bg);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.register-input:focus-within {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.register-input--error {
+  background: var(--field-error-bg);
+  border-color: #f6e4e4;
+}
+
+.register-input--error:focus-within {
+  border-color: var(--error);
+}
+
+.register-input__icon {
+  flex-shrink: 0;
+  color: #9a9ca3;
+}
+
+.register-input__status {
+  flex-shrink: 0;
+  color: #b4b6bc;
+  transition: color 0.15s;
+}
+
+.register-input__status--ok {
+  color: var(--success);
+}
+
+.register-input input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.register-input input::placeholder {
+  color: #a7a9b0;
+}
+
+.register-input__toggle {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.register-input__toggle:hover {
+  color: var(--text);
+}
+
+/* ---------- Terms checkbox ---------- */
+.register-terms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.register-terms input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border-radius: 6px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.register-terms--error {
+  color: var(--error);
+}
+
+.register-terms a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-terms a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Submit ---------- */
+.register-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 54px;
+  margin-top: 28px;
+  border: none;
+  border-radius: 27px;
+  background: var(--primary);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 101, 141, 0.25);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.register-submit:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.register-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.register-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* ---------- Footer ---------- */
+.register-footer {
+  margin: 20px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.register-footer__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.register-footer__link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 480px) {
+  .register-brand {
+    margin-bottom: 40px;
+  }
+
+  .register-card {
+    padding: 36px 20px 32px;
+    border-radius: 28px;
+  }
+}

@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from 'react';
+import SignIn from './pages/SignIn/SignIn';
+import Register from './pages/Register/Register';
 
 function App() {
+  const [page, setPage] = useState('signin');
+
+  if (page === 'register') {
+    return (
+      <Register
+        onRegistered={(user) => {
+          alert(`Workspace created for ${user.email}`);
+          setPage('signin');
+        }}
+        onSignIn={() => setPage('signin')}
+      />
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <SignIn
+      onSignedIn={(user) => alert(`Signed in as ${user.email}`)}
+      onCreateAccount={() => setPage('register')}
+    />
   );
 }
 
