@@ -37,6 +37,27 @@ router.post('/', async (req, res) => {
   res.status(201).json({ user_id: result.insertId, name, email, profile_photo: profile_photo || null });
 });
 
+// POST /api/users/login  (sign_in) - checks the password against the stored bcrypt hash
+router.post('/login', async (req, res) => {
+  const missing = missingFields(req.body, ['email', 'password']);
+  if (missing.length) return res.status(400).json({ error: 'Missing fields', fields: missing });
+
+  const email = String(req.body.email).trim().toLowerCase();
+  const [rows] = await pool.query(
+    `SELECT ${PUBLIC_COLUMNS}, password FROM \`user\` WHERE email = ?`,
+    [email]
+  );
+
+  // Same response for unknown email and wrong password, so emails can't be probed
+  const user = rows[0];
+  if (!user || !(await bcrypt.compare(String(req.body.password), user.password))) {
+    return res.status(401).json({ error: 'Incorrect email or password' });
+  }
+
+  const { password, ...publicUser } = user;
+  res.json(publicUser);
+});
+
 // PUT /api/users/:id  (update_user)
 router.put('/:id', async (req, res) => {
   const body = { ...req.body };

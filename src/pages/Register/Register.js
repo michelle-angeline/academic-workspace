@@ -40,6 +40,7 @@ function Register({ onRegistered, onSignIn }) {
     confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -109,7 +110,7 @@ function Register({ onRegistered, onSignIn }) {
                 id="fullName"
                 type="text"
                 autoComplete="name"
-                placeholder="Alex Morgan"
+                placeholder="John Smith"
                 value={form.fullName}
                 onChange={handleChange('fullName')}
                 aria-invalid={Boolean(errors.fullName)}
@@ -174,7 +175,7 @@ function Register({ onRegistered, onSignIn }) {
               <ShieldCheckIcon className="register-input__icon" />
               <input
                 id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 placeholder="Re-enter password"
                 value={form.confirmPassword}
@@ -184,11 +185,19 @@ function Register({ onRegistered, onSignIn }) {
               <CheckCircleIcon
                 className={`register-input__status ${passwordsMatch ? 'register-input__status--ok' : ''}`}
               />
+              <button
+                type="button"
+                className="register-input__toggle"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+              >
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
             </div>
           </div>
 
           <button type="submit" className="register-submit" disabled={loading}>
-            {loading ? 'Creating workspace…' : 'Create Academic Workspace'}
+            {loading ? 'Creating account...' : 'Create Account'}
             {!loading && <ArrowRightIcon width={18} height={18} />}
           </button>
         </form>
