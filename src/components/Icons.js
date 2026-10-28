@@ -366,3 +366,110 @@ export function SproutIcon(props) {
     </svg>
   );
 }
+
+export function UserIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+export function ShieldIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z" />
+    </svg>
+  );
+}
+
+export function UploadIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="m17 8-5-5-5 5" />
+      <path d="M12 3v12" />
+    </svg>
+  );
+}
+
+export function KeyIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="7.5" cy="15.5" r="4.5" />
+      <path d="m10.7 12.3 9.3-9.3" />
+      <path d="m16 7 3 3" />
+      <path d="m19 4 2 2" />
+    </svg>
+  );
+}
+
+export function MonitorIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+    </svg>
+  );
+}
+
+export function RotateCcwIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+      <path d="M3 3v5h5" />
+    </svg>
+  );
+}
+
+export function CheckIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+export function CalendarXIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4" />
+      <path d="M8 3v4" />
+      <path d="M3 10h18" />
+      <path d="m10 13 4 4" />
+      <path d="m14 13-4 4" />
+    </svg>
+  );
+}
+
+export function HourglassIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 22h14" />
+      <path d="M5 2h14" />
+      <path d="M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4a2 2 0 0 0-.6 1.4V22" />
+      <path d="M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4a2 2 0 0 0 .6-1.4V2" />
+    </svg>
+  );
+}
+
+export function InfoIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  );
+}
+
+export function MinusIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 12h14" />
+    </svg>
+  );
+}

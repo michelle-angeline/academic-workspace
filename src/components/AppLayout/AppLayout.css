@@ -1,0 +1,454 @@
+/* Shared page shell: sidebar, top bar, color tokens and small utilities used by every signed-in page */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+.dash-page {
+  --sidebar-width: 288px;
+  --primary: #00658d;
+  --primary-hover: #00557a;
+  --accent: #38bdf8;
+  --text: #131b2e;
+  --text-muted: #5a5d66;
+  --line: #eceef6;
+  --card: #ffffff;
+  --tile: #f3f4fc;
+  --danger: #ba1a1a;
+  --danger-bg: #ffdad6;
+  --success: #0b7a55;
+  --success-bg: #c8f5e0;
+  --purple: #7c4ddb;
+  --purple-bg: #ece6ff;
+  --blue-bg: #dff1fd;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding-left: var(--sidebar-width);
+  box-sizing: border-box;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background: linear-gradient(0deg, #faf8ff, #faf8ff), #ffffff;
+}
+
+/* Soft glows behind the content (blue top, lavender centre, mint right) */
+.dash-page::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 0 var(--sidebar-width);
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 45% 30% at 25% 5%, rgba(173, 216, 250, 0.55), transparent 70%),
+    radial-gradient(ellipse 35% 30% at 50% 45%, rgba(230, 222, 255, 0.45), transparent 70%),
+    radial-gradient(ellipse 25% 30% at 90% 35%, rgba(200, 242, 225, 0.45), transparent 70%);
+}
+
+.dash-page *,
+.dash-page *::before,
+.dash-page *::after {
+  box-sizing: border-box;
+}
+
+/* :where() keeps this reset at zero specificity so component classes can override it */
+:where(.dash-page) :where(h1, h2, h3, p, ul) {
+  margin: 0;
+  padding: 0;
+}
+
+:where(.dash-page) ul {
+  list-style: none;
+}
+
+.dash-page button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.dash-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dash-dot--live {
+  background: var(--success);
+}
+
+.dash-dot--danger {
+  width: 10px;
+  height: 10px;
+  background: var(--danger);
+}
+
+.dash-icon-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  padding: 6px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+}
+
+.dash-icon-btn:hover {
+  background: var(--tile);
+  color: var(--text);
+}
+
+.dash-icon-btn--active,
+.dash-icon-btn--active:hover {
+  background: var(--accent);
+  color: #06344a;
+}
+
+/* ---------- Sidebar ---------- */
+.dash-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  padding: 24px 16px;
+  background: #fff;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+
+.dash-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px 24px;
+}
+
+.dash-logo__mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7cc8f0, #00658d);
+  color: #fff;
+}
+
+.dash-logo__name {
+  display: block;
+  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.dash-logo__tagline {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.dash-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dash-nav a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dash-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dash-nav__item:hover {
+  background: var(--tile);
+}
+
+.dash-nav__item--active,
+.dash-nav__item--active:hover {
+  background: var(--accent);
+  color: #06344a;
+}
+
+.dash-nav__item--alerts svg {
+  color: var(--danger);
+}
+
+.dash-nav__heading {
+  margin: 22px 8px 6px !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dash-nav__workspace {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-muted) !important;
+}
+
+.dash-nav__workspace:hover {
+  background: var(--tile);
+}
+
+.dash-nav__workspace:last-of-type {
+  margin-bottom: 14px;
+}
+
+.dash-nav__count {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dash-nav__due {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #6ee7b7;
+  color: #064e3b;
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.dash-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--tile);
+}
+
+.dash-profile__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(135deg, #00658d, #38b6f0);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dash-profile__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-profile__name {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-profile__meta {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ---------- Top bar ---------- */
+.dash-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.dash-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text-muted);
+}
+
+.dash-search:focus-within {
+  border-color: var(--primary);
+}
+
+.dash-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.dash-chip--semester {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--blue-bg);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dash-new-task {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(0, 101, 141, 0.25);
+}
+
+.dash-new-task:hover {
+  background: var(--primary-hover);
+}
+
+.dash-bell {
+  position: relative;
+}
+
+.dash-bell__dot {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+.dash-topbar__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--primary);
+}
+
+.dash-topbar__avatar > * {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dash-main {
+  min-width: 0;
+}
+
+/* ---------- Content ---------- */
+.dash-content {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1100px;
+  padding: 48px 32px 64px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) {
+  .dash-chip--semester {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .dash-page {
+    padding-left: 0;
+  }
+
+  .dash-page::before {
+    left: 0;
+  }
+
+  .dash-sidebar {
+    position: static;
+    width: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .dash-profile {
+    margin-top: 16px;
+  }
+
+  .dash-topbar {
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .dash-new-task {
+    padding: 9px 12px;
+  }
+
+  .dash-content {
+    padding: 28px 16px 48px;
+  }
+}

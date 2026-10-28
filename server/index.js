@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config({ quiet: true });
@@ -11,6 +12,9 @@ app.use((req, res, next) => {
   req.body = req.body || {};
   next();
 });
+
+// Uploaded profile photos, e.g. /uploads/user-5-1730000000000.jpg
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Quick check that the API can reach the database
 app.get('/api/health', async (req, res) => {
@@ -42,6 +46,12 @@ app.use((err, req, res, next) => {
   }
   if (err.code === 'ECONNREFUSED' || err.code === 'ER_ACCESS_DENIED_ERROR' || err.code === 'ER_BAD_DB_ERROR') {
     return res.status(503).json({ error: 'Database unavailable', detail: err.code });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ error: 'Photo must be 2 MB or smaller' });
+  }
+  if (err.code === 'INVALID_FILE_TYPE') {
+    return res.status(400).json({ error: 'Photo must be a JPG, PNG, WEBP or GIF image' });
   }
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'Invalid JSON body' });
