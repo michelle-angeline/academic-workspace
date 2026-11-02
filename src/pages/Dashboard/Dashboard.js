@@ -22,7 +22,7 @@ import {
   ZapIcon,
 } from '../../components/Icons';
 import AppLayout from '../../components/AppLayout/AppLayout';
-import { WORKSPACES } from '../../data/workspaces';
+import { DEMO_WORKSPACES as WORKSPACES } from '../../data/workspaces';
 import './Dashboard.css';
 
 // ---------- Hardcoded demo data (replace with API data later) ----------
@@ -118,14 +118,14 @@ const statusClass = (status) => `dash-status dash-status--${status.toLowerCase()
 
 // ---------- Component ----------
 
-function Dashboard({ user, onNavigate, onSignOut }) {
+function Dashboard({ user, workspaces, onNavigate, onSignOut }) {
   const [scope, setScope] = useState('all');
 
   const fullName = user?.name?.trim() || 'Student';
   const firstName = fullName.split(/\s+/)[0];
 
   return (
-    <AppLayout user={user} active="dashboard" onNavigate={onNavigate} onSignOut={onSignOut}>
+    <AppLayout user={user} workspaces={workspaces} active="dashboard" onNavigate={onNavigate} onSignOut={onSignOut}>
       <main className="dash-content">
         {/* ---------- Greeting ---------- */}
         <section className="dash-hero">

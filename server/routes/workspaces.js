@@ -2,6 +2,24 @@ const express = require('express');
 const pool = require('../db');
 const { missingFields, buildUpdate } = require('../utils');
 
+const UPDATABLE_FIELDS = ['workspace_name', 'description'];
+
+// Trims the text fields and turns an empty description into NULL. Returns { values } or { error }.
+function cleanWorkspace(body) {
+  const values = {};
+  for (const field of UPDATABLE_FIELDS) {
+    if (body[field] === undefined) continue;
+    let value = body[field];
+    if (typeof value === 'string') value = value.trim();
+    if (field === 'description' && value === '') value = null;
+    values[field] = value;
+  }
+
+  if (values.workspace_name !== undefined && !values.workspace_name) return { error: 'workspace_name cannot be empty' };
+  if (values.workspace_name?.length > 150) return { error: 'workspace_name must be 150 characters or fewer' };
+  return { values };
+}
+
 const router = express.Router();
 
 // GET /api/workspaces?user_id=1
@@ -12,6 +30,7 @@ router.get('/', async (req, res) => {
     sql += ' WHERE user_id = ?';
     params.push(req.query.user_id);
   }
+  sql += ' ORDER BY workspace_id';
   const [rows] = await pool.query(sql, params);
   res.json(rows);
 });
@@ -28,17 +47,24 @@ router.post('/', async (req, res) => {
   const missing = missingFields(req.body, ['workspace_name', 'user_id']);
   if (missing.length) return res.status(400).json({ error: 'Missing fields', fields: missing });
 
-  const { workspace_name, description, user_id } = req.body;
+  const { values, error } = cleanWorkspace(req.body);
+  if (error) return res.status(400).json({ error });
+
+  const columns = [...Object.keys(values), 'user_id'];
   const [result] = await pool.query(
-    'INSERT INTO workspace (workspace_name, description, user_id) VALUES (?, ?, ?)',
-    [workspace_name, description || null, user_id]
+    `INSERT INTO workspace (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
+    [...Object.values(values), req.body.user_id]
   );
-  res.status(201).json({ workspace_id: result.insertId, workspace_name, description: description || null, user_id });
+  const [rows] = await pool.query('SELECT * FROM workspace WHERE workspace_id = ?', [result.insertId]);
+  res.status(201).json(rows[0]);
 });
 
 // PUT /api/workspaces/:id  (update_workspace)
 router.put('/:id', async (req, res) => {
-  const { setClause, values } = buildUpdate(req.body, ['workspace_name', 'description']);
+  const cleaned = cleanWorkspace(req.body);
+  if (cleaned.error) return res.status(400).json({ error: cleaned.error });
+
+  const { setClause, values } = buildUpdate(cleaned.values, UPDATABLE_FIELDS);
   if (!setClause) return res.status(400).json({ error: 'No fields to update' });
 
   const [result] = await pool.query(`UPDATE workspace SET ${setClause} WHERE workspace_id = ?`, [

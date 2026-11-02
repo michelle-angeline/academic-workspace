@@ -1,8 +1,6 @@
-import { WORKSPACES } from '../../data/workspaces';
 import Avatar from '../Avatar';
 import {
   BellIcon,
-  CalendarIcon,
   GraduationCapIcon,
   LayoutIcon,
   LogOutIcon,
@@ -13,8 +11,9 @@ import {
 } from '../Icons';
 import './AppLayout.css';
 
-// Sidebar + top bar shared by every signed-in page. `active` is the current page name.
-function AppLayout({ user, active, onNavigate, onSignOut, children }) {
+// Sidebar + top bar shared by every signed-in page. `active` is the current page name;
+// `workspaces` is the signed-in user's workspaces from the database (null while loading).
+function AppLayout({ user, workspaces, active, onNavigate, onSignOut, children }) {
   const fullName = user?.name?.trim() || 'Student';
 
   return (
@@ -42,12 +41,17 @@ function AppLayout({ user, active, onNavigate, onSignOut, children }) {
           </button>
 
           <p className="dash-nav__heading">Workspaces</p>
-          {WORKSPACES.map((w) => (
-            <a key={w.id} href={`#${w.id}`} className="dash-nav__workspace">
-              <span className="dash-dot" style={{ background: w.color }} />
-              {w.name}
+          {workspaces?.map((w) => (
+            <a key={w.workspace_id} href={`#workspace-${w.workspace_id}`} className="dash-nav__workspace" title={w.workspace_name}>
+              <span className="dash-dot dash-dot--workspace" />
+              <span className="dash-nav__workspace-name">{w.workspace_name}</span>
             </a>
           ))}
+          {workspaces?.length === 0 && (
+            <button type="button" className="dash-nav__empty" onClick={() => onNavigate('new-workspace')}>
+              No workspaces yet. <span>Create one</span>
+            </button>
+          )}
 
           <a href="#alerts" className="dash-nav__item dash-nav__item--alerts">
             <BellIcon width={18} height={18} />
@@ -89,13 +93,9 @@ function AppLayout({ user, active, onNavigate, onSignOut, children }) {
             <SearchIcon width={17} height={17} />
             <input type="search" placeholder="Search" />
           </label>
-          <span className="dash-chip dash-chip--semester">
-            <CalendarIcon width={14} height={14} />
-            Semester 6 • Week 8
-          </span>
-          <button type="button" className="dash-new-task">
+          <button type="button" className="dash-new-task" onClick={() => onNavigate('new-workspace')}>
             <PlusIcon width={16} height={16} />
-            New Task
+            New Workspace
           </button>
           <button type="button" className="dash-icon-btn dash-bell" aria-label="Notifications">
             <BellIcon width={19} height={19} />

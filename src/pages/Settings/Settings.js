@@ -154,7 +154,7 @@ function DaysControl({ value, min, max, mid, midLabel, onChange, accent, disable
 
 // ---------- Page ----------
 
-function Settings({ user, onUserUpdated, onNavigate, onSignOut }) {
+function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
   const sectionRefs = { profile: useRef(null), password: useRef(null), rules: useRef(null) };
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -315,7 +315,7 @@ function Settings({ user, onUserUpdated, onNavigate, onSignOut }) {
   };
 
   return (
-    <AppLayout user={user} active="settings" onNavigate={onNavigate} onSignOut={onSignOut}>
+    <AppLayout user={user} workspaces={workspaces} active="settings" onNavigate={onNavigate} onSignOut={onSignOut}>
       <main className="dash-content settings-content">
         {/* ---------- Header ---------- */}
         <header className="settings-header">
