@@ -357,6 +357,25 @@
   border-top: 1px solid #eceef6;
 }
 
+.td-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto 0 0;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--td-subtle);
+}
+
+.td-save-status--saved {
+  color: #006c49;
+}
+
+.td-save-status--error {
+  color: #ba1a1a;
+}
+
 .td-submit-error {
   flex-basis: 100%;
   margin: 0 0 4px;

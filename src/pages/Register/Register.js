@@ -8,7 +8,6 @@ import {
   ChevronRightIcon,
   EyeIcon,
   EyeOffIcon,
-  GraduationCapIcon,
   GraduationCapSolidIcon,
   IdBadgeIcon,
   LockIcon,
@@ -75,12 +74,6 @@ function Register({ onRegistered, onSignIn }) {
 
   return (
     <div className="register-page">
-      <header className="register-brand">
-        <span className="register-brand__logo">
-          <GraduationCapIcon />
-        </span>
-        <span className="register-brand__name">Athena</span>
-      </header>
 
       <main className="register-card">
         <div className="register-card__icon">

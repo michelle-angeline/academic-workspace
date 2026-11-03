@@ -7,13 +7,14 @@ import {
   ChevronRightIcon,
   FileTextIcon,
   FolderIcon,
-  GripVerticalIcon,
+  PenLineIcon,
   PlusIcon,
   RotateCcwIcon,
   SearchIcon,
+  TrashIcon,
   WarningIcon,
 } from '../../components/Icons';
-import { listTasks } from '../../services/tasks';
+import { deleteTask, listTasks } from '../../services/tasks';
 import TaskDrawer from './TaskDrawer';
 import './Workspace.css';
 
@@ -53,6 +54,7 @@ const fromRow = (row) => ({
   status: row.status,
   subtasks: { done: 0, total: 0 },
   last_activity: parseDate(row.updated_at || row.created_at) || today,
+  row, // the original API row, used to fill the edit drawer
 });
 
 const INACTIVE_DAYS = 7;
@@ -83,20 +85,46 @@ function alertFor(task) {
 
 // ---------- Components ----------
 
-function TaskCard({ task }) {
+function TaskCard({ task, onEdit, onDelete }) {
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const done = task.status === 'Done';
   const alert = alertFor(task);
   const pct = progressOf(task);
+
+  const confirmDelete = async () => {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await onDelete(task);
+    } catch (err) {
+      setDeleteError(err.message);
+      setDeleting(false);
+    }
+  };
 
   return (
     <article className={`ws-task ${done ? 'ws-task--done' : ''}`}>
       <div className="ws-task__top">
         <span className={`ws-priority ws-priority--${task.priority.toLowerCase()}`}>{task.priority}</span>
-        {done ? (
-          <span className="ws-task__check" aria-label="Completed"><CheckIcon width={11} height={11} strokeWidth={3.5} /></span>
-        ) : (
-          <GripVerticalIcon width={12} height={12} className="ws-task__grip" aria-hidden="true" />
-        )}
+        <div className="ws-task__actions">
+          {done && (
+            <span className="ws-task__check" aria-label="Completed"><CheckIcon width={11} height={11} strokeWidth={3.5} /></span>
+          )}
+          <button type="button" className="ws-task__icon-btn" onClick={() => onEdit(task)} aria-label={`Edit ${task.title}`} title="Edit task">
+            <PenLineIcon width={13} height={13} />
+          </button>
+          <button
+            type="button"
+            className="ws-task__icon-btn ws-task__icon-btn--danger"
+            onClick={() => setConfirming(true)}
+            aria-label={`Delete ${task.title}`}
+            title="Delete task"
+          >
+            <TrashIcon width={13} height={13} />
+          </button>
+        </div>
       </div>
 
       <h3 className="ws-task__title">{task.title}</h3>
@@ -138,6 +166,21 @@ function TaskCard({ task }) {
           </p>
         )}
       </div>
+
+      {confirming && (
+        <div className="ws-task__confirm" role="alertdialog" aria-label="Confirm delete">
+          <p>Delete this task?</p>
+          {deleteError && <p className="ws-task__confirm-error">{deleteError}</p>}
+          <div className="ws-task__confirm-actions">
+            <button type="button" onClick={() => setConfirming(false)} disabled={deleting}>
+              Cancel
+            </button>
+            <button type="button" className="ws-task__confirm-delete" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   );
 }
@@ -150,8 +193,8 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
   const [alertsOnly, setAlertsOnly] = useState(false);
   const [dbTasks, setDbTasks] = useState([]);
   const [loadError, setLoadError] = useState('');
-  // Status the Add Task drawer starts with; null while the drawer is closed
-  const [drawerStatus, setDrawerStatus] = useState(null);
+  // null while the drawer is closed; { task: null } to create, { task: row } to edit
+  const [drawer, setDrawer] = useState(null);
 
   const workspaceId = workspace?.workspace_id;
   useEffect(() => {
@@ -169,9 +212,21 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
 
   const tasks = dbTasks;
 
+  // A new task was created: add it and close the drawer
   const handleTaskCreated = (row) => {
     setDbTasks((list) => [...list, fromRow(row)]);
-    setDrawerStatus(null);
+    setDrawer(null);
+  };
+
+  // An edit was autosaved: replace the card with the row the API returned (drawer stays open)
+  const handleTaskUpdated = (row) => {
+    setDbTasks((list) => list.map((t) => (t.task_id === row.task_id ? fromRow(row) : t)));
+  };
+
+  // Throws on failure so the card can show the error
+  const handleTaskDelete = async (task) => {
+    await deleteTask(task.task_id);
+    setDbTasks((list) => list.filter((t) => t.task_id !== task.task_id));
   };
 
   const totalDone = tasks.filter((t) => t.status === 'Done').length;
@@ -264,7 +319,7 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
             </p>
           </div>
           <div className="ws-hero__actions">
-            <button type="button" className="ws-btn ws-btn--primary" onClick={() => setDrawerStatus('To Do')}>
+            <button type="button" className="ws-btn ws-btn--primary" onClick={() => setDrawer({ task: null })}>
               <PlusIcon width={12} height={12} strokeWidth={3} /> Add Task
             </button>
           </div>
@@ -342,18 +397,15 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
                     {col.status}
                     <span className="ws-column__count">{colTasks.length}</span>
                   </h2>
-                  <button
-                    type="button"
-                    className="ws-column__add"
-                    aria-label={`Add task to ${col.status}`}
-                    onClick={() => setDrawerStatus(col.status)}
-                  >
-                    <PlusIcon width={12} height={12} strokeWidth={2.5} />
-                  </button>
                 </div>
                 <div className="ws-column__cards">
                   {colTasks.map((task) => (
-                    <TaskCard key={task.task_id} task={task} />
+                    <TaskCard
+                      key={task.task_id}
+                      task={task}
+                      onEdit={(t) => setDrawer({ task: t.row })}
+                      onDelete={handleTaskDelete}
+                    />
                   ))}
                   {colTasks.length === 0 && <p className="ws-column__empty">No tasks</p>}
                 </div>
@@ -363,12 +415,13 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
         </section>
       </main>
 
-      {drawerStatus && (
+      {drawer && (
         <TaskDrawer
           workspace={workspace}
-          initialStatus={drawerStatus}
-          onCreated={handleTaskCreated}
-          onClose={() => setDrawerStatus(null)}
+          task={drawer.task}
+          onSaved={handleTaskCreated}
+          onUpdated={handleTaskUpdated}
+          onClose={() => setDrawer(null)}
         />
       )}
     </AppLayout>

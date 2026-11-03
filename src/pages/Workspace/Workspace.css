@@ -518,24 +518,6 @@
   color: var(--count);
 }
 
-.ws-column__add {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 9999px;
-  background: #fff;
-  box-shadow: var(--ws-card-shadow);
-  color: var(--ws-muted);
-}
-
-.ws-column__add:hover {
-  background: var(--ws-soft);
-}
-
 .ws-column__cards {
   display: flex;
   flex-direction: column;
@@ -590,9 +572,90 @@
   color: var(--ws-muted);
 }
 
-.ws-task__grip {
-  color: rgba(62, 72, 79, 0.4);
-  cursor: grab;
+.ws-task {
+  position: relative;
+}
+
+.ws-task__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ws-task__actions .ws-task__check {
+  margin-right: 4px;
+}
+
+.ws-content .ws-task__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: none;
+  color: var(--ws-subtle);
+}
+
+.ws-content .ws-task__icon-btn:hover {
+  background: var(--ws-field);
+  color: var(--ws-primary);
+}
+
+.ws-content .ws-task__icon-btn--danger:hover {
+  background: #ffdad6;
+  color: #ba1a1a;
+}
+
+/* Inline "Delete this task?" confirmation covering the card */
+.ws-task__confirm {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ws-ink);
+  text-align: center;
+}
+
+.ws-task__confirm-error {
+  font-size: 12px;
+  color: #ba1a1a;
+}
+
+.ws-task__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ws-content .ws-task__confirm-actions button {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--ws-field);
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ws-ink);
+}
+
+.ws-content .ws-task__confirm-actions .ws-task__confirm-delete {
+  background: #ba1a1a;
+  color: #fff;
+}
+
+.ws-content .ws-task__confirm-actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .ws-task__check {

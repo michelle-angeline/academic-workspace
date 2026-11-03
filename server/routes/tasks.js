@@ -76,7 +76,17 @@ router.put('/:id', async (req, res) => {
     return res.status(400).json({ error: `status must be one of: ${TASK_STATUSES.join(', ')}` });
   }
 
-  const { setClause, values } = buildUpdate(req.body, [
+  const body = { ...req.body };
+  if (body.title !== undefined) {
+    body.title = String(body.title).trim();
+    if (!body.title) return res.status(400).json({ error: 'title cannot be empty' });
+    if (body.title.length > 200) return res.status(400).json({ error: 'title must be 200 characters or fewer' });
+  }
+  // Optional columns: an empty value clears them
+  if (body.notes !== undefined) body.notes = String(body.notes ?? '').trim() || null;
+  if (body.deadline !== undefined) body.deadline = body.deadline || null;
+
+  const { setClause, values } = buildUpdate(body, [
     'title',
     'notes',
     'deadline',
@@ -91,7 +101,8 @@ router.put('/:id', async (req, res) => {
     req.params.id,
   ]);
   if (result.affectedRows === 0) return res.status(404).json({ error: 'Task not found' });
-  res.json({ message: 'Task updated' });
+  const [rows] = await pool.query('SELECT * FROM task WHERE task_id = ?', [req.params.id]);
+  res.json(rows[0]);
 });
 
 // PATCH /api/tasks/:id/status  (update_status) - used when a card is moved on the Kanban board

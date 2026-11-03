@@ -23,3 +23,20 @@ export async function createTask(workspaceId, { title, notes, deadline, priority
   if (res.ok) return data;
   throw apiError(res, data, 'Could not create the task. Please try again.');
 }
+
+// Saves edits to a task (PUT /api/tasks/:id) and returns the updated row.
+export async function updateTask(taskId, { title, notes, deadline, priority, status }) {
+  const { res, data } = await request(`/api/tasks/${taskId}`, {
+    method: 'PUT',
+    json: { title: title.trim(), notes: notes.trim() || null, deadline: deadline || null, priority, status },
+  });
+  if (res.ok) return data;
+  throw apiError(res, data, 'Could not save the task. Please try again.');
+}
+
+// Deletes a task and its subtasks/alerts (DELETE /api/tasks/:id).
+export async function deleteTask(taskId) {
+  const { res, data } = await request(`/api/tasks/${taskId}`, { method: 'DELETE' });
+  if (res.ok) return;
+  throw apiError(res, data, 'Could not delete the task. Please try again.');
+}

@@ -7,7 +7,6 @@ import {
   BookOpenIcon,
   EyeIcon,
   EyeOffIcon,
-  GraduationCapIcon,
   LockIcon,
   WarningIcon,
 } from '../../components/Icons';
@@ -50,12 +49,6 @@ function SignIn({ onSignedIn, onCreateAccount }) {
 
   return (
     <div className="signin-page">
-      <header className="signin-brand">
-        <span className="signin-brand__logo">
-          <GraduationCapIcon />
-        </span>
-        <span className="signin-brand__name">Athena</span>
-      </header>
 
       <main className="signin-card">
         <div className="signin-card__icon">
