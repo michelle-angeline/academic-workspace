@@ -484,3 +484,31 @@ export function GridIcon(props) {
     </svg>
   );
 }
+
+export function MoreVerticalIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="5" r="1" fill="currentColor" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+      <circle cx="12" cy="19" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function SortIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 6h18" />
+      <path d="M6 12h12" />
+      <path d="M10 18h4" />
+    </svg>
+  );
+}

@@ -4,6 +4,7 @@ import Register from './pages/Register/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Settings from './pages/Settings/Settings';
 import NewWorkspace from './pages/NewWorkspace/NewWorkspace';
+import Workspace from './pages/Workspace/Workspace';
 import { listWorkspaces } from './services/workspaces';
 
 function App() {
@@ -11,6 +12,8 @@ function App() {
   const [user, setUser] = useState(null);
   // The signed-in user's workspaces for the sidebar; null until loaded
   const [workspaces, setWorkspaces] = useState(null);
+  // workspace_id of the workspace open on the Workspace page
+  const [openWorkspaceId, setOpenWorkspaceId] = useState(null);
 
   const userId = user?.user_id;
   useEffect(() => {
@@ -32,8 +35,10 @@ function App() {
 
   const addWorkspace = (workspace) => setWorkspaces((list) => [...(list || []), workspace]);
 
-  const navigate = (next) => {
+  // navigate('workspace', id) opens a workspace; other pages take no id
+  const navigate = (next, workspaceId = null) => {
     setPage(next);
+    setOpenWorkspaceId(workspaceId);
     window.scrollTo(0, 0);
   };
 
@@ -49,6 +54,18 @@ function App() {
         user={user}
         workspaces={workspaces}
         onWorkspaceCreated={addWorkspace}
+        onNavigate={navigate}
+        onSignOut={signOut}
+      />
+    );
+  }
+
+  if (page === 'workspace' && user) {
+    return (
+      <Workspace
+        user={user}
+        workspaces={workspaces}
+        workspace={workspaces?.find((w) => w.workspace_id === openWorkspaceId)}
         onNavigate={navigate}
         onSignOut={signOut}
       />

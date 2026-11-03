@@ -226,6 +226,26 @@
   background: var(--tile);
 }
 
+/* Workspace links are buttons: reset the browser button look (beats `.dash-page button { font: inherit }`) */
+button.dash-nav__workspace {
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: 13px;
+  text-align: left;
+}
+
+button.dash-nav__workspace:hover {
+  background: var(--tile);
+}
+
+button.dash-nav__workspace--active,
+button.dash-nav__workspace--active:hover {
+  background: var(--blue-bg);
+  color: var(--text) !important;
+  font-weight: 700;
+}
+
 .dash-nav__workspace-name {
   min-width: 0;
   overflow: hidden;

@@ -12,8 +12,9 @@ import {
 import './AppLayout.css';
 
 // Sidebar + top bar shared by every signed-in page. `active` is the current page name;
-// `workspaces` is the signed-in user's workspaces from the database (null while loading).
-function AppLayout({ user, workspaces, active, onNavigate, onSignOut, children }) {
+// `workspaces` is the signed-in user's workspaces from the database (null while loading);
+// `activeWorkspaceId` highlights the open workspace on the Workspace page.
+function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, onSignOut, children }) {
   const fullName = user?.name?.trim() || 'Student';
 
   return (
@@ -41,12 +42,22 @@ function AppLayout({ user, workspaces, active, onNavigate, onSignOut, children }
           </button>
 
           <p className="dash-nav__heading">Workspaces</p>
-          {workspaces?.map((w) => (
-            <a key={w.workspace_id} href={`#workspace-${w.workspace_id}`} className="dash-nav__workspace" title={w.workspace_name}>
-              <span className="dash-dot dash-dot--workspace" />
-              <span className="dash-nav__workspace-name">{w.workspace_name}</span>
-            </a>
-          ))}
+          {workspaces?.map((w) => {
+            const isOpen = active === 'workspace' && activeWorkspaceId === w.workspace_id;
+            return (
+              <button
+                key={w.workspace_id}
+                type="button"
+                className={`dash-nav__workspace ${isOpen ? 'dash-nav__workspace--active' : ''}`}
+                title={w.workspace_name}
+                aria-current={isOpen ? 'page' : undefined}
+                onClick={() => onNavigate('workspace', w.workspace_id)}
+              >
+                <span className="dash-dot dash-dot--workspace" />
+                <span className="dash-nav__workspace-name">{w.workspace_name}</span>
+              </button>
+            );
+          })}
           {workspaces?.length === 0 && (
             <button type="button" className="dash-nav__empty" onClick={() => onNavigate('new-workspace')}>
               No workspaces yet. <span>Create one</span>
