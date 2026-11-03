@@ -293,19 +293,6 @@
   background: #00557a;
 }
 
-.ws-btn--soft {
-  background: var(--ws-field);
-  color: var(--ws-ink);
-}
-
-.ws-btn--soft svg {
-  color: var(--ws-subtle);
-}
-
-.ws-btn--soft:hover {
-  background: var(--ws-soft);
-}
-
 /* ---------- Toolbar ---------- */
 .ws-toolbar {
   display: flex;
@@ -447,6 +434,15 @@
   height: 6px;
   border-radius: 9999px;
   background: #ba1a1a;
+}
+
+.ws-load-error {
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #ffdad6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #93000a;
 }
 
 /* ---------- Kanban board ---------- */

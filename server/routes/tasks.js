@@ -47,7 +47,10 @@ router.post('/', async (req, res) => {
   const missing = missingFields(req.body, ['title', 'workspace_id']);
   if (missing.length) return res.status(400).json({ error: 'Missing fields', fields: missing });
 
-  const { title, notes, deadline, priority = 'Medium', status = 'To Do', workspace_id } = req.body;
+  const { notes, deadline, priority = 'Medium', status = 'To Do', workspace_id } = req.body;
+  const title = String(req.body.title).trim();
+  if (!title) return res.status(400).json({ error: 'title cannot be empty' });
+  if (title.length > 200) return res.status(400).json({ error: 'title must be 200 characters or fewer' });
   if (!PRIORITIES.includes(priority)) {
     return res.status(400).json({ error: `priority must be one of: ${PRIORITIES.join(', ')}` });
   }

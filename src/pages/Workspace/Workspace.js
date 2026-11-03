@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AppLayout from '../../components/AppLayout/AppLayout';
 import {
   CalendarIcon,
@@ -11,33 +11,17 @@ import {
   PlusIcon,
   RotateCcwIcon,
   SearchIcon,
-  SlidersIcon,
   WarningIcon,
 } from '../../components/Icons';
+import { listTasks } from '../../services/tasks';
+import TaskDrawer from './TaskDrawer';
 import './Workspace.css';
 
-// ---------- Hardcoded demo tasks (replace with GET /api/tasks?workspace_id=... later) ----------
-// Fields follow the task table (title, notes, deadline, priority, status). `subtasks` is { done, total }
-// until subtasks are loaded, and `last_activity` is a demo-only field for the inactivity alert.
-// Dates are relative to today so the overdue / due-soon / inactive alerts always make sense.
+// ---------- Tasks come from the database (GET /api/tasks?workspace_id=...) ----------
 
 const DAY = 24 * 60 * 60 * 1000;
 const today = new Date();
 today.setHours(0, 0, 0, 0);
-const daysFromNow = (n) => new Date(today.getTime() + n * DAY);
-
-const DEMO_TASKS = [
-  { task_id: 1, title: 'System Integration Testing Plan', notes: 'Integration test matrix', deadline: daysFromNow(10), priority: 'High', status: 'To Do', subtasks: { done: 0, total: 4 }, last_activity: daysFromNow(-2) },
-  { task_id: 2, title: 'Survey Instrument IRB Consent Form', notes: 'Participant consent template', deadline: daysFromNow(17), priority: 'Low', status: 'To Do', subtasks: { done: 1, total: 2 }, last_activity: daysFromNow(-1) },
-  { task_id: 3, title: 'Literature Synthesis Matrix Draft', notes: '14 papers synthesized so far', deadline: daysFromNow(12), priority: 'High', status: 'In Progress', subtasks: { done: 3, total: 7 }, last_activity: daysFromNow(-8) },
-  { task_id: 4, title: 'Backend REST API Endpoints Implementation', notes: 'CRUD routes for tasks', deadline: daysFromNow(2), priority: 'Medium', status: 'In Progress', subtasks: { done: 4, total: 6 }, last_activity: daysFromNow(-1) },
-  { task_id: 5, title: 'User Authentication Flow & Session Management', notes: 'Refresh token rotation', deadline: daysFromNow(6), priority: 'Medium', status: 'In Progress', subtasks: { done: 5, total: 6 }, last_activity: daysFromNow(0) },
-  { task_id: 6, title: 'Chapter 2 Theoretical Framework & Architecture Draft', notes: 'Advisor requested revisions', deadline: daysFromNow(-1), priority: 'High', status: 'Review', subtasks: { done: 4, total: 4 }, last_activity: daysFromNow(-2) },
-  { task_id: 7, title: 'Database Schema Normalization Benchmark', notes: '3NF vs BCNF comparison', deadline: daysFromNow(5), priority: 'Low', status: 'Review', subtasks: { done: 3, total: 3 }, last_activity: daysFromNow(-1) },
-  { task_id: 8, title: 'Project Charter & Research Proposal Defense', notes: 'Approved by committee', deadline: daysFromNow(-30), priority: 'High', status: 'Done', subtasks: { done: 5, total: 5 }, last_activity: daysFromNow(-30) },
-  { task_id: 9, title: 'Requirements Elicitation & Student Survey (N=30)', notes: 'Survey responses coded', deadline: daysFromNow(-25), priority: 'Medium', status: 'Done', subtasks: { done: 3, total: 3 }, last_activity: daysFromNow(-25) },
-  { task_id: 10, title: 'System Architecture & ER Diagram Draft', notes: 'Entity relationships finalized', deadline: daysFromNow(-21), priority: 'Medium', status: 'Done', subtasks: { done: 4, total: 4 }, last_activity: daysFromNow(-21) },
-];
 
 const COLUMNS = [
   { status: 'To Do', tone: 'todo' },
@@ -50,10 +34,26 @@ const PRIORITIES = ['High', 'Medium', 'Low'];
 
 const DEADLINE_FILTERS = {
   all: { label: 'Deadline: All Dates', test: () => true },
-  overdue: { label: 'Deadline: Overdue', test: (t) => t.status !== 'Done' && daysUntil(t.deadline) < 0 },
-  week: { label: 'Deadline: Next 7 Days', test: (t) => daysUntil(t.deadline) >= 0 && daysUntil(t.deadline) <= 7 },
-  later: { label: 'Deadline: Later', test: (t) => daysUntil(t.deadline) > 7 },
+  overdue: { label: 'Deadline: Overdue', test: (t) => t.deadline && t.status !== 'Done' && daysUntil(t.deadline) < 0 },
+  week: { label: 'Deadline: Next 7 Days', test: (t) => t.deadline && daysUntil(t.deadline) >= 0 && daysUntil(t.deadline) <= 7 },
+  later: { label: 'Deadline: Later', test: (t) => !t.deadline || daysUntil(t.deadline) > 7 },
 };
+
+// MySQL DATETIME strings ("2026-11-10 00:00:00") -> local Date
+const parseDate = (value) => (value ? new Date(String(value).replace(' ', 'T')) : null);
+
+// Shapes a task row from the API for the board. Subtasks aren't loaded yet, so progress is 0/0;
+// updated_at is the last activity used by the inactivity alert.
+const fromRow = (row) => ({
+  task_id: row.task_id,
+  title: row.title,
+  notes: row.notes || '',
+  deadline: parseDate(row.deadline),
+  priority: row.priority,
+  status: row.status,
+  subtasks: { done: 0, total: 0 },
+  last_activity: parseDate(row.updated_at || row.created_at) || today,
+});
 
 const INACTIVE_DAYS = 7;
 const DUE_SOON_DAYS = 3;
@@ -67,7 +67,7 @@ const progressOf = (task) => (task.subtasks.total ? Math.round((task.subtasks.do
 // Early-alert rules (same rules as the Settings page). Returns null when the task is healthy.
 function alertFor(task) {
   if (task.status === 'Done') return null;
-  const days = daysUntil(task.deadline);
+  const days = task.deadline ? daysUntil(task.deadline) : Infinity;
   if (days < 0) return { kind: 'overdue', text: `Overdue by ${plural(-days, 'day')}` };
   if (days <= DUE_SOON_DAYS) {
     const when = days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : `Due in ${days} days`;
@@ -123,11 +123,11 @@ function TaskCard({ task }) {
       <div className="ws-task__footer">
         {done ? (
           <p className="ws-task__date ws-task__date--done">
-            <CheckIcon width={11} height={11} strokeWidth={3} /> Completed {formatShort(task.deadline)}
+            <CheckIcon width={11} height={11} strokeWidth={3} /> Completed {formatShort(task.last_activity)}
           </p>
         ) : (
           <p className={`ws-task__date ${alert?.kind === 'overdue' ? 'ws-task__date--overdue' : ''}`}>
-            <CalendarIcon width={11} height={11} /> {formatDate(task.deadline)}
+            <CalendarIcon width={11} height={11} /> {task.deadline ? formatDate(task.deadline) : 'No deadline'}
             {alert?.kind === 'overdue' && ' (Overdue)'}
           </p>
         )}
@@ -148,8 +148,31 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
   const [status, setStatus] = useState('all');
   const [deadline, setDeadline] = useState('all');
   const [alertsOnly, setAlertsOnly] = useState(false);
+  const [dbTasks, setDbTasks] = useState([]);
+  const [loadError, setLoadError] = useState('');
+  // Status the Add Task drawer starts with; null while the drawer is closed
+  const [drawerStatus, setDrawerStatus] = useState(null);
 
-  const tasks = DEMO_TASKS;
+  const workspaceId = workspace?.workspace_id;
+  useEffect(() => {
+    if (workspaceId === undefined) return undefined;
+    let cancelled = false;
+    setDbTasks([]);
+    setLoadError('');
+    listTasks(workspaceId)
+      .then((rows) => !cancelled && setDbTasks(rows.map(fromRow)))
+      .catch((err) => !cancelled && setLoadError(err.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
+
+  const tasks = dbTasks;
+
+  const handleTaskCreated = (row) => {
+    setDbTasks((list) => [...list, fromRow(row)]);
+    setDrawerStatus(null);
+  };
 
   const totalDone = tasks.filter((t) => t.status === 'Done').length;
   const completion = tasks.length ? Math.round((totalDone / tasks.length) * 100) : 0;
@@ -241,11 +264,8 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
             </p>
           </div>
           <div className="ws-hero__actions">
-            <button type="button" className="ws-btn ws-btn--primary">
+            <button type="button" className="ws-btn ws-btn--primary" onClick={() => setDrawerStatus('To Do')}>
               <PlusIcon width={12} height={12} strokeWidth={3} /> Add Task
-            </button>
-            <button type="button" className="ws-btn ws-btn--soft">
-              <SlidersIcon width={12} height={12} /> Filter &amp; Views
             </button>
           </div>
         </header>
@@ -308,6 +328,8 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
           </div>
         </section>
 
+        {loadError && <p className="ws-load-error" role="alert">{loadError}</p>}
+
         {/* ---------- Kanban board ---------- */}
         <section className="ws-board" aria-label="Kanban board">
           {columns.map((col) => {
@@ -320,7 +342,12 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
                     {col.status}
                     <span className="ws-column__count">{colTasks.length}</span>
                   </h2>
-                  <button type="button" className="ws-column__add" aria-label={`Add task to ${col.status}`}>
+                  <button
+                    type="button"
+                    className="ws-column__add"
+                    aria-label={`Add task to ${col.status}`}
+                    onClick={() => setDrawerStatus(col.status)}
+                  >
                     <PlusIcon width={12} height={12} strokeWidth={2.5} />
                   </button>
                 </div>
@@ -335,6 +362,15 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
           })}
         </section>
       </main>
+
+      {drawerStatus && (
+        <TaskDrawer
+          workspace={workspace}
+          initialStatus={drawerStatus}
+          onCreated={handleTaskCreated}
+          onClose={() => setDrawerStatus(null)}
+        />
+      )}
     </AppLayout>
   );
 }
