@@ -1,28 +1,25 @@
 import { useMemo, useState } from 'react';
 import AppLayout from '../../components/AppLayout/AppLayout';
 import {
-  ArrowRightIcon,
-  CheckCircleIcon,
+  CalendarIcon,
+  CheckIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ClockIcon,
-  EyeIcon,
   FileTextIcon,
-  ListChecksIcon,
-  MoreVerticalIcon,
+  FolderIcon,
+  GripVerticalIcon,
   PlusIcon,
+  RotateCcwIcon,
   SearchIcon,
-  SortIcon,
-  TargetIcon,
-  TimerIcon,
+  SlidersIcon,
   WarningIcon,
-  ZapIcon,
 } from '../../components/Icons';
 import './Workspace.css';
 
 // ---------- Hardcoded demo tasks (replace with GET /api/tasks?workspace_id=... later) ----------
-// Fields follow the task table; `subtasks` is { done, total } until subtasks are loaded too.
-// Deadlines are relative to today so the overdue / due-soon alerts always make sense.
+// Fields follow the task table (title, notes, deadline, priority, status). `subtasks` is { done, total }
+// until subtasks are loaded, and `last_activity` is a demo-only field for the inactivity alert.
+// Dates are relative to today so the overdue / due-soon / inactive alerts always make sense.
 
 const DAY = 24 * 60 * 60 * 1000;
 const today = new Date();
@@ -30,180 +27,148 @@ today.setHours(0, 0, 0, 0);
 const daysFromNow = (n) => new Date(today.getTime() + n * DAY);
 
 const DEMO_TASKS = [
-  {
-    task_id: 1,
-    title: 'ER Diagram Normalization Exercise',
-    notes: 'Normalize up to 3NF and justify each step.',
-    deadline: daysFromNow(-1),
-    priority: 'High',
-    status: 'In Progress',
-    subtasks: { done: 3, total: 5 },
-  },
-  {
-    task_id: 2,
-    title: 'Subnetting & Routing Table Lab Report',
-    notes: 'Include packet tracer screenshots.',
-    deadline: daysFromNow(2),
-    priority: 'Medium',
-    status: 'In Progress',
-    subtasks: { done: 4, total: 6 },
-  },
-  {
-    task_id: 3,
-    title: 'Literature Synthesis Matrix Draft',
-    notes: 'Matrix.docx shared with supervisor.',
-    deadline: daysFromNow(10),
-    priority: 'Medium',
-    status: 'Review',
-    subtasks: { done: 4, total: 5 },
-  },
-  {
-    task_id: 4,
-    title: 'Hypothesis Testing Problem Set',
-    notes: '',
-    deadline: daysFromNow(4),
-    priority: 'Medium',
-    status: 'To Do',
-    subtasks: { done: 0, total: 4 },
-  },
-  {
-    task_id: 5,
-    title: 'Interactive Prototype User Testing Prep',
-    notes: 'Recruit 5 participants.',
-    deadline: daysFromNow(5),
-    priority: 'High',
-    status: 'To Do',
-    subtasks: { done: 0, total: 3 },
-  },
-  {
-    task_id: 6,
-    title: 'Chapter 1 Literature Review',
-    notes: 'Submitted for feedback.',
-    deadline: daysFromNow(-3),
-    priority: 'Low',
-    status: 'Done',
-    subtasks: { done: 6, total: 6 },
-  },
+  { task_id: 1, title: 'System Integration Testing Plan', notes: 'Integration test matrix', deadline: daysFromNow(10), priority: 'High', status: 'To Do', subtasks: { done: 0, total: 4 }, last_activity: daysFromNow(-2) },
+  { task_id: 2, title: 'Survey Instrument IRB Consent Form', notes: 'Participant consent template', deadline: daysFromNow(17), priority: 'Low', status: 'To Do', subtasks: { done: 1, total: 2 }, last_activity: daysFromNow(-1) },
+  { task_id: 3, title: 'Literature Synthesis Matrix Draft', notes: '14 papers synthesized so far', deadline: daysFromNow(12), priority: 'High', status: 'In Progress', subtasks: { done: 3, total: 7 }, last_activity: daysFromNow(-8) },
+  { task_id: 4, title: 'Backend REST API Endpoints Implementation', notes: 'CRUD routes for tasks', deadline: daysFromNow(2), priority: 'Medium', status: 'In Progress', subtasks: { done: 4, total: 6 }, last_activity: daysFromNow(-1) },
+  { task_id: 5, title: 'User Authentication Flow & Session Management', notes: 'Refresh token rotation', deadline: daysFromNow(6), priority: 'Medium', status: 'In Progress', subtasks: { done: 5, total: 6 }, last_activity: daysFromNow(0) },
+  { task_id: 6, title: 'Chapter 2 Theoretical Framework & Architecture Draft', notes: 'Advisor requested revisions', deadline: daysFromNow(-1), priority: 'High', status: 'Review', subtasks: { done: 4, total: 4 }, last_activity: daysFromNow(-2) },
+  { task_id: 7, title: 'Database Schema Normalization Benchmark', notes: '3NF vs BCNF comparison', deadline: daysFromNow(5), priority: 'Low', status: 'Review', subtasks: { done: 3, total: 3 }, last_activity: daysFromNow(-1) },
+  { task_id: 8, title: 'Project Charter & Research Proposal Defense', notes: 'Approved by committee', deadline: daysFromNow(-30), priority: 'High', status: 'Done', subtasks: { done: 5, total: 5 }, last_activity: daysFromNow(-30) },
+  { task_id: 9, title: 'Requirements Elicitation & Student Survey (N=30)', notes: 'Survey responses coded', deadline: daysFromNow(-25), priority: 'Medium', status: 'Done', subtasks: { done: 3, total: 3 }, last_activity: daysFromNow(-25) },
+  { task_id: 10, title: 'System Architecture & ER Diagram Draft', notes: 'Entity relationships finalized', deadline: daysFromNow(-21), priority: 'Medium', status: 'Done', subtasks: { done: 4, total: 4 }, last_activity: daysFromNow(-21) },
 ];
 
-const STATUSES = ['To Do', 'In Progress', 'Review', 'Done'];
+const COLUMNS = [
+  { status: 'To Do', tone: 'todo' },
+  { status: 'In Progress', tone: 'progress' },
+  { status: 'Review', tone: 'review' },
+  { status: 'Done', tone: 'done' },
+];
 
-// Card color scheme per task status (taken from the design's card gradients)
-const STATUS_STYLE = {
-  'To Do': { tone: 'blue', Icon: ListChecksIcon },
-  'In Progress': { tone: 'green', Icon: TimerIcon },
-  Review: { tone: 'purple', Icon: EyeIcon },
-  Done: { tone: 'done', Icon: CheckCircleIcon },
+const PRIORITIES = ['High', 'Medium', 'Low'];
+
+const DEADLINE_FILTERS = {
+  all: { label: 'Deadline: All Dates', test: () => true },
+  overdue: { label: 'Deadline: Overdue', test: (t) => t.status !== 'Done' && daysUntil(t.deadline) < 0 },
+  week: { label: 'Deadline: Next 7 Days', test: (t) => daysUntil(t.deadline) >= 0 && daysUntil(t.deadline) <= 7 },
+  later: { label: 'Deadline: Later', test: (t) => daysUntil(t.deadline) > 7 },
 };
 
-const SORTS = {
-  deadline: { label: 'Sort by: Deadline', compare: (a, b) => a.deadline - b.deadline },
-  progress: { label: 'Sort by: Progress', compare: (a, b) => progressOf(b) - progressOf(a) },
-  title: { label: 'Sort by: Title', compare: (a, b) => a.title.localeCompare(b.title) },
-};
+const INACTIVE_DAYS = 7;
+const DUE_SOON_DAYS = 3;
 
-const progressOf = (task) => (task.subtasks.total ? Math.round((task.subtasks.done / task.subtasks.total) * 100) : 0);
 const daysUntil = (date) => Math.round((date - today) / DAY);
-const formatDate = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const formatDate = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+const formatShort = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const progressOf = (task) => (task.subtasks.total ? Math.round((task.subtasks.done / task.subtasks.total) * 100) : 0);
 
-// Early-alert rules (same idea as the Settings page): overdue, due within 3 days, high priority not started
+// Early-alert rules (same rules as the Settings page). Returns null when the task is healthy.
 function alertFor(task) {
   if (task.status === 'Done') return null;
   const days = daysUntil(task.deadline);
-  if (days < 0) return { kind: 'overdue', Icon: WarningIcon, title: 'Overdue Alert', text: `Past deadline by ${plural(-days, 'day')}` };
-  if (days <= 3) {
+  if (days < 0) return { kind: 'overdue', text: `Overdue by ${plural(-days, 'day')}` };
+  if (days <= DUE_SOON_DAYS) {
     const when = days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : `Due in ${days} days`;
-    return { kind: 'due', Icon: ClockIcon, title: when, text: `Deadline ${formatDate(task.deadline)}` };
+    return { kind: 'due', text: `${when} (${formatShort(task.deadline)})` };
   }
-  if (task.priority === 'High' && task.status === 'To Do') {
-    return { kind: 'priority', Icon: ZapIcon, title: 'High Priority Not Started', text: 'Still in To Do' };
+  const idle = -daysUntil(task.last_activity);
+  if ((task.status === 'In Progress' || task.status === 'Review') && idle >= INACTIVE_DAYS) {
+    return { kind: 'inactive', text: `Inactive for ${idle} days • Stalled` };
   }
+  if (task.priority === 'High' && task.status === 'To Do') return { kind: 'priority', text: 'High priority • Not started' };
   return null;
 }
 
 // ---------- Components ----------
 
 function TaskCard({ task }) {
-  const { tone, Icon } = STATUS_STYLE[task.status];
-  const pct = progressOf(task);
+  const done = task.status === 'Done';
   const alert = alertFor(task);
-  const overdue = alert?.kind === 'overdue';
+  const pct = progressOf(task);
 
   return (
-    <article className={`ws-card ws-card--${tone}`}>
-      <div className="ws-card__body">
-        <div className="ws-card__header">
-          <span className="ws-card__icon"><Icon width={16} height={16} /></span>
-          <div className="ws-card__titles">
-            <p className="ws-card__meta">
-              {task.status} • {task.priority} priority
-            </p>
-            <h2 className="ws-card__title">{task.title}</h2>
-          </div>
-          <button type="button" className="ws-card__menu" aria-label={`${task.title} options`}>
-            <MoreVerticalIcon width={16} height={16} />
-          </button>
-        </div>
-
-        <div className="ws-progress">
-          <div className="ws-progress__head">
-            <span>Subtask Progress</span>
-            <span className="ws-progress__pct">
-              {pct}% ({task.subtasks.done}/{task.subtasks.total})
-            </span>
-          </div>
-          <div className="ws-progress__bar">
-            <span style={{ width: `${pct}%` }} />
-          </div>
-          <div className="ws-progress__metrics">
-            <span>{task.subtasks.done} Completed</span>
-            <span>{task.subtasks.total - task.subtasks.done} Remaining</span>
-            <span className={overdue ? 'ws-text--danger' : undefined}>Due {formatDate(task.deadline)}</span>
-          </div>
-        </div>
-
-        {alert && (
-          <div className={`ws-alert ws-alert--${alert.kind}`}>
-            <alert.Icon width={14} height={14} />
-            <div>
-              <p className="ws-alert__title">{alert.title}</p>
-              <p className="ws-alert__text">{alert.text}</p>
-            </div>
-          </div>
+    <article className={`ws-task ${done ? 'ws-task--done' : ''}`}>
+      <div className="ws-task__top">
+        <span className={`ws-priority ws-priority--${task.priority.toLowerCase()}`}>{task.priority}</span>
+        {done ? (
+          <span className="ws-task__check" aria-label="Completed"><CheckIcon width={11} height={11} strokeWidth={3.5} /></span>
+        ) : (
+          <GripVerticalIcon width={12} height={12} className="ws-task__grip" aria-hidden="true" />
         )}
       </div>
 
-      <div className="ws-card__footer">
-        <span className="ws-card__notes">
-          <FileTextIcon width={12} height={12} /> {task.notes ? 'Notes in task' : 'No notes'}
-        </span>
-        <button type="button" className="ws-card__open">
-          Open Task <ArrowRightIcon width={10} height={10} strokeWidth={3} />
-        </button>
+      <h3 className="ws-task__title">{task.title}</h3>
+
+      {alert && (
+        <p className={`ws-badge ws-badge--${alert.kind}`} title={alert.text}>
+          <span className="ws-badge__dot" />
+          <span className="ws-badge__text">{alert.text}</span>
+        </p>
+      )}
+
+      <div className="ws-subtasks">
+        <div className="ws-subtasks__head">
+          <span>Subtasks</span>
+          <code>
+            {task.subtasks.done}/{task.subtasks.total} ({pct}%)
+          </code>
+        </div>
+        <div className={`ws-subtasks__bar ws-subtasks__bar--${done ? 'done' : alert?.kind || 'normal'}`}>
+          <span style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+
+      <div className="ws-task__footer">
+        {done ? (
+          <p className="ws-task__date ws-task__date--done">
+            <CheckIcon width={11} height={11} strokeWidth={3} /> Completed {formatShort(task.deadline)}
+          </p>
+        ) : (
+          <p className={`ws-task__date ${alert?.kind === 'overdue' ? 'ws-task__date--overdue' : ''}`}>
+            <CalendarIcon width={11} height={11} /> {formatDate(task.deadline)}
+            {alert?.kind === 'overdue' && ' (Overdue)'}
+          </p>
+        )}
+        {task.notes && (
+          <p className="ws-task__note" title={task.notes}>
+            <FileTextIcon width={11} height={11} />
+            <span>Task Note: {task.notes}</span>
+          </p>
+        )}
       </div>
     </article>
   );
 }
 
 function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sort, setSort] = useState('deadline');
   const [query, setQuery] = useState('');
+  const [priority, setPriority] = useState('all');
+  const [status, setStatus] = useState('all');
+  const [deadline, setDeadline] = useState('all');
+  const [alertsOnly, setAlertsOnly] = useState(false);
 
   const tasks = DEMO_TASKS;
 
+  const totalDone = tasks.filter((t) => t.status === 'Done').length;
+  const completion = tasks.length ? Math.round((totalDone / tasks.length) * 100) : 0;
+  const alerted = tasks.filter(alertFor);
+  const overdueCount = alerted.filter((t) => alertFor(t).kind === 'overdue').length;
+  const atRiskCount = alerted.length - overdueCount;
+
   const visibleTasks = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return tasks
-      .filter((t) => statusFilter === 'all' || t.status === statusFilter)
-      .filter((t) => !q || t.title.toLowerCase().includes(q))
-      .sort(SORTS[sort].compare);
-  }, [tasks, statusFilter, sort, query]);
+    return tasks.filter(
+      (t) =>
+        (!q || t.title.toLowerCase().includes(q) || t.notes.toLowerCase().includes(q)) &&
+        (priority === 'all' || t.priority === priority) &&
+        DEADLINE_FILTERS[deadline].test(t) &&
+        (!alertsOnly || alertFor(t))
+    );
+  }, [tasks, query, priority, deadline, alertsOnly]);
 
-  const activeCount = tasks.filter((t) => t.status !== 'Done').length;
-  const avgCompletion = tasks.length ? Math.round(tasks.reduce((sum, t) => sum + progressOf(t), 0) / tasks.length) : 0;
-  const flaggedCount = tasks.filter(alertFor).length;
+  const columns = COLUMNS.filter((c) => status === 'all' || c.status === status);
 
   const layoutProps = {
     user,
@@ -239,88 +204,135 @@ function Workspace({ user, workspaces, workspace, onNavigate, onSignOut }) {
         <span className="ws-glow ws-glow--blue" aria-hidden="true" />
         <span className="ws-glow ws-glow--mint" aria-hidden="true" />
 
-        {/* ---------- Heading ---------- */}
-        <header className="ws-header">
+        {/* ---------- Breadcrumb & quick stats ---------- */}
+        <div className="ws-topline">
           <p className="ws-breadcrumb">
-            <span>Academic Workspaces</span>
-            <ChevronRightIcon width={10} height={10} strokeWidth={3} />
-            <span className="ws-breadcrumb__current">Overview</span>
+            <span className="ws-breadcrumb__link">
+              <FolderIcon width={13} height={13} /> Workspaces
+            </span>
+            <ChevronRightIcon width={10} height={10} strokeWidth={3} className="ws-breadcrumb__sep" />
+            <span className="ws-breadcrumb__current">
+              <span className="ws-breadcrumb__dot" /> {workspace.workspace_name}
+            </span>
           </p>
-          <div className="ws-header__row">
-            <div className="ws-header__text">
-              <h1 className="ws-title">{workspace.workspace_name}</h1>
-              {workspace.description && <p className="ws-description">{workspace.description}</p>}
-            </div>
-            <div className="ws-stats">
-              <span className="ws-stat">
-                <span className="ws-stat__dot" /> {plural(activeCount, 'Active Task')}
+          <div className="ws-pills">
+            <span className="ws-pill">
+              <RotateCcwIcon width={12} height={12} /> {plural(tasks.length, 'Task')} Total
+            </span>
+            <span className="ws-pill ws-pill--risk">
+              <span className="ws-pill__dot" /> {atRiskCount} At Risk
+            </span>
+            <span className="ws-pill ws-pill--overdue">
+              <span className="ws-pill__dot" /> {overdueCount} Overdue
+            </span>
+          </div>
+        </div>
+
+        {/* ---------- Title card ---------- */}
+        <header className="ws-hero">
+          <div className="ws-hero__text">
+            <h1 className="ws-title">{workspace.workspace_name}</h1>
+            {workspace.description && <p className="ws-description">{workspace.description}</p>}
+            <p className="ws-benchmark">
+              Progress: <strong>{completion}% completed</strong> ({totalDone}/{plural(tasks.length, 'task')})
+              <span className="ws-benchmark__bar">
+                <span style={{ width: `${completion}%` }} />
               </span>
-              <span className="ws-stat">
-                <CheckCircleIcon width={12} height={12} className="ws-stat__icon--green" /> {plural(tasks.length, 'Total Task')}
-              </span>
-              <span className="ws-stat">
-                <TargetIcon width={12} height={12} className="ws-stat__icon--blue" /> {avgCompletion}% Avg. Completion
-              </span>
-              <span className="ws-stat ws-stat--alert">
-                <span className="ws-stat__dot" /> {plural(flaggedCount, 'Flagged Alert')}
-              </span>
-            </div>
+            </p>
+          </div>
+          <div className="ws-hero__actions">
+            <button type="button" className="ws-btn ws-btn--primary">
+              <PlusIcon width={12} height={12} strokeWidth={3} /> Add Task
+            </button>
+            <button type="button" className="ws-btn ws-btn--soft">
+              <SlidersIcon width={12} height={12} /> Filter &amp; Views
+            </button>
           </div>
         </header>
 
         {/* ---------- Toolbar ---------- */}
-        <div className="ws-toolbar">
-          <div className="ws-toolbar__controls">
-            <label className="ws-select">
-              <span className="sr-only">Filter by status</span>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                <option value="all">All Statuses</option>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <ChevronDownIcon width={12} height={12} />
-            </label>
-            <label className="ws-select ws-select--sort">
-              <span className="sr-only">Sort tasks</span>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                {Object.entries(SORTS).map(([key, s]) => (
-                  <option key={key} value={key}>{s.label}</option>
-                ))}
-              </select>
-              <SortIcon width={12} height={12} />
-            </label>
+        <section className="ws-toolbar" aria-label="Board filters">
+          <div className="ws-toolbar__row">
             <label className="ws-search">
-              <SearchIcon width={12} height={12} />
+              <SearchIcon width={14} height={14} />
               <input
                 type="search"
-                placeholder="Filter tasks by title..."
+                placeholder={`Search ${workspace.workspace_name} tasks or notes...`}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </label>
           </div>
-          <button type="button" className="ws-create-btn">
-            <PlusIcon width={14} height={14} strokeWidth={2.5} /> Create Task
-          </button>
-        </div>
 
-        {/* ---------- Task grid ---------- */}
-        <section className="ws-grid" aria-label="Tasks">
-          {visibleTasks.map((task) => (
-            <TaskCard key={task.task_id} task={task} />
-          ))}
-
-          {visibleTasks.length === 0 && <p className="ws-grid__empty">No tasks match your filters.</p>}
-
-          <article className="ws-card ws-card--create">
-            <span className="ws-card--create__plus"><PlusIcon width={28} height={28} /></span>
-            <h2 className="ws-card--create__title">Create New Task</h2>
-            <p className="ws-card--create__text">Add a new assignment, milestone, or deliverable to this workspace.</p>
-            <button type="button" className="ws-card--create__btn">
-              <PlusIcon width={12} height={12} strokeWidth={2.5} /> Create Task
+          <div className="ws-toolbar__row ws-toolbar__row--filters">
+            <div className="ws-filters">
+              <label className="ws-select">
+                <span className="sr-only">Priority</span>
+                <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                  <option value="all">Priority: All</option>
+                  {PRIORITIES.map((p) => (
+                    <option key={p} value={p}>Priority: {p}</option>
+                  ))}
+                </select>
+                <ChevronDownIcon width={10} height={10} strokeWidth={3} />
+              </label>
+              <label className="ws-select">
+                <span className="sr-only">Status</span>
+                <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                  <option value="all">Status: All Stages</option>
+                  {COLUMNS.map((c) => (
+                    <option key={c.status} value={c.status}>Status: {c.status}</option>
+                  ))}
+                </select>
+                <ChevronDownIcon width={10} height={10} strokeWidth={3} />
+              </label>
+              <label className="ws-select">
+                <span className="sr-only">Deadline</span>
+                <select value={deadline} onChange={(e) => setDeadline(e.target.value)}>
+                  {Object.entries(DEADLINE_FILTERS).map(([key, f]) => (
+                    <option key={key} value={key}>{f.label}</option>
+                  ))}
+                </select>
+                <ChevronDownIcon width={10} height={10} strokeWidth={3} />
+              </label>
+            </div>
+            <button
+              type="button"
+              className={`ws-alert-toggle ${alertsOnly ? 'ws-alert-toggle--on' : ''}`}
+              aria-pressed={alertsOnly}
+              onClick={() => setAlertsOnly((v) => !v)}
+            >
+              <WarningIcon width={12} height={12} /> Show At-Risk / Alerted Only ({alerted.length})
+              <span className="ws-alert-toggle__dot" />
             </button>
-          </article>
+          </div>
+        </section>
+
+        {/* ---------- Kanban board ---------- */}
+        <section className="ws-board" aria-label="Kanban board">
+          {columns.map((col) => {
+            const colTasks = visibleTasks.filter((t) => t.status === col.status);
+            return (
+              <div key={col.status} className={`ws-column ws-column--${col.tone}`}>
+                <div className="ws-column__head">
+                  <h2 className="ws-column__title">
+                    <span className="ws-column__dot" />
+                    {col.status}
+                    <span className="ws-column__count">{colTasks.length}</span>
+                  </h2>
+                  <button type="button" className="ws-column__add" aria-label={`Add task to ${col.status}`}>
+                    <PlusIcon width={12} height={12} strokeWidth={2.5} />
+                  </button>
+                </div>
+                <div className="ws-column__cards">
+                  {colTasks.map((task) => (
+                    <TaskCard key={task.task_id} task={task} />
+                  ))}
+                  {colTasks.length === 0 && <p className="ws-column__empty">No tasks</p>}
+                </div>
+              </div>
+            );
+          })}
         </section>
       </main>
     </AppLayout>

@@ -512,3 +512,29 @@ export function SortIcon(props) {
     </svg>
   );
 }
+
+export function GripVerticalIcon(props) {
+  return (
+    <svg {...base} {...props} stroke="none" fill="currentColor">
+      <circle cx="9" cy="5" r="1.6" />
+      <circle cx="15" cy="5" r="1.6" />
+      <circle cx="9" cy="12" r="1.6" />
+      <circle cx="15" cy="12" r="1.6" />
+      <circle cx="9" cy="19" r="1.6" />
+      <circle cx="15" cy="19" r="1.6" />
+    </svg>
+  );
+}
+
+export function ListIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M8 6h13" />
+      <path d="M8 12h13" />
+      <path d="M8 18h13" />
+      <path d="M3 6h.01" />
+      <path d="M3 12h.01" />
+      <path d="M3 18h.01" />
+    </svg>
+  );
+}
