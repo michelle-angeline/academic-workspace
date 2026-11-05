@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Settings from './pages/Settings/Settings';
 import NewWorkspace from './pages/NewWorkspace/NewWorkspace';
 import Workspace from './pages/Workspace/Workspace';
+import EarlyAlerts from './pages/EarlyAlerts/EarlyAlerts';
 import { listWorkspaces } from './services/workspaces';
 
 function App() {
@@ -70,6 +71,10 @@ function App() {
         onSignOut={signOut}
       />
     );
+  }
+
+  if (page === 'early-alerts' && user) {
+    return <EarlyAlerts user={user} workspaces={workspaces} onNavigate={navigate} onSignOut={signOut} />;
   }
 
   if (page === 'dashboard' && user) {

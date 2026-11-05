@@ -559,3 +559,40 @@ export function TrashIcon(props) {
     </svg>
   );
 }
+
+export function MailIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-10 6L2 7" />
+    </svg>
+  );
+}
+
+export function CheckCheckIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M18 6 7 17l-5-5" />
+      <path d="m22 10-7.5 7.5L13 16" />
+    </svg>
+  );
+}
+
+export function PieChartIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M21.2 15.9A10 10 0 1 1 8 2.8" />
+      <path d="M22 12A10 10 0 0 0 12 2v10Z" />
+    </svg>
+  );
+}
+
+export function PauseCircleIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M10 15V9" />
+      <path d="M14 15V9" />
+    </svg>
+  );
+}

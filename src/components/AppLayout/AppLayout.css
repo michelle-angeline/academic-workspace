@@ -282,6 +282,12 @@ button.dash-nav__workspace--active:hover {
   font-weight: 700;
 }
 
+/* No alerts: show the 0 in a calm grey instead of red */
+.dash-nav__count--zero {
+  background: var(--tile);
+  color: var(--text-muted);
+}
+
 .dash-nav__due {
   margin-left: auto;
   padding: 2px 8px;

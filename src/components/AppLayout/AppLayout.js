@@ -1,3 +1,4 @@
+import useAlertCount from '../../hooks/useAlertCount';
 import Avatar from '../Avatar';
 import {
   BellIcon,
@@ -16,6 +17,7 @@ import './AppLayout.css';
 // `activeWorkspaceId` highlights the open workspace on the Workspace page.
 function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, onSignOut, children }) {
   const fullName = user?.name?.trim() || 'Student';
+  const alertCount = useAlertCount(workspaces);
 
   return (
     <div className="dash-page">
@@ -64,11 +66,23 @@ function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, on
             </button>
           )}
 
-          <a href="#alerts" className="dash-nav__item dash-nav__item--alerts">
+          <button
+            type="button"
+            className={`dash-nav__item dash-nav__item--alerts ${active === 'early-alerts' ? 'dash-nav__item--active' : ''}`}
+            aria-current={active === 'early-alerts' ? 'page' : undefined}
+            onClick={() => onNavigate('early-alerts')}
+          >
             <BellIcon width={18} height={18} />
             Early Alerts
-            <span className="dash-nav__count">4</span>
-          </a>
+            {alertCount !== null && (
+              <span
+                className={`dash-nav__count ${alertCount === 0 ? 'dash-nav__count--zero' : ''}`}
+                aria-label={`${alertCount} early alert${alertCount === 1 ? '' : 's'}`}
+              >
+                {alertCount}
+              </span>
+            )}
+          </button>
           <a href="#reflection" className="dash-nav__item">
             <SproutIcon width={18} height={18} />
             Weekly Reflection

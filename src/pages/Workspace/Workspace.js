@@ -15,6 +15,7 @@ import {
   WarningIcon,
 } from '../../components/Icons';
 import { deleteTask, listTasks } from '../../services/tasks';
+import { matchRules, parseDate } from '../../utils/alertRules';
 import TaskDrawer from './TaskDrawer';
 import './Workspace.css';
 
@@ -40,8 +41,6 @@ const DEADLINE_FILTERS = {
   later: { label: 'Deadline: Later', test: (t) => !t.deadline || daysUntil(t.deadline) > 7 },
 };
 
-// MySQL DATETIME strings ("2026-11-10 00:00:00") -> local Date
-const parseDate = (value) => (value ? new Date(String(value).replace(' ', 'T')) : null);
 
 // Shapes a task row from the API for the board. Subtasks aren't loaded yet, so progress is 0/0;
 // updated_at is the last activity used by the inactivity alert.
@@ -57,8 +56,6 @@ const fromRow = (row) => ({
   row, // the original API row, used to fill the edit drawer
 });
 
-const INACTIVE_DAYS = 7;
-const DUE_SOON_DAYS = 3;
 
 const daysUntil = (date) => Math.round((date - today) / DAY);
 const formatDate = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -68,19 +65,18 @@ const progressOf = (task) => (task.subtasks.total ? Math.round((task.subtasks.do
 
 // Early-alert rules (same rules as the Settings page). Returns null when the task is healthy.
 function alertFor(task) {
-  if (task.status === 'Done') return null;
-  const days = task.deadline ? daysUntil(task.deadline) : Infinity;
-  if (days < 0) return { kind: 'overdue', text: `Overdue by ${plural(-days, 'day')}` };
-  if (days <= DUE_SOON_DAYS) {
-    const when = days === 0 ? 'Due today' : days === 1 ? 'Due tomorrow' : `Due in ${days} days`;
+  const [match] = matchRules(
+    { status: task.status, priority: task.priority, deadline: task.deadline, lastActivity: task.last_activity },
+    today
+  );
+  if (!match) return null;
+  if (match.kind === 'overdue') return { kind: 'overdue', text: `Overdue by ${plural(match.days, 'day')}` };
+  if (match.kind === 'due') {
+    const when = match.days === 0 ? 'Due today' : match.days === 1 ? 'Due tomorrow' : `Due in ${match.days} days`;
     return { kind: 'due', text: `${when} (${formatShort(task.deadline)})` };
   }
-  const idle = -daysUntil(task.last_activity);
-  if ((task.status === 'In Progress' || task.status === 'Review') && idle >= INACTIVE_DAYS) {
-    return { kind: 'inactive', text: `Inactive for ${idle} days • Stalled` };
-  }
-  if (task.priority === 'High' && task.status === 'To Do') return { kind: 'priority', text: 'High priority • Not started' };
-  return null;
+  if (match.kind === 'inactive') return { kind: 'inactive', text: `Inactive for ${match.days} days • Stalled` };
+  return { kind: 'priority', text: 'High priority • Not started' };
 }
 
 // ---------- Components ----------
