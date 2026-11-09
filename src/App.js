@@ -6,6 +6,7 @@ import Settings from './pages/Settings/Settings';
 import NewWorkspace from './pages/NewWorkspace/NewWorkspace';
 import Workspace from './pages/Workspace/Workspace';
 import EarlyAlerts from './pages/EarlyAlerts/EarlyAlerts';
+import WeeklyReflection from './pages/WeeklyReflection/WeeklyReflection';
 import { listWorkspaces } from './services/workspaces';
 
 function App() {
@@ -75,6 +76,10 @@ function App() {
 
   if (page === 'early-alerts' && user) {
     return <EarlyAlerts user={user} workspaces={workspaces} onNavigate={navigate} onSignOut={signOut} />;
+  }
+
+  if (page === 'weekly-reflection' && user) {
+    return <WeeklyReflection user={user} workspaces={workspaces} onNavigate={navigate} onSignOut={signOut} />;
   }
 
   if (page === 'dashboard' && user) {

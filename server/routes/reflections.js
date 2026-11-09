@@ -29,7 +29,11 @@ router.post('/', async (req, res) => {
   const missing = missingFields(req.body, ['week_start', 'reflection_text', 'user_id']);
   if (missing.length) return res.status(400).json({ error: 'Missing fields', fields: missing });
 
-  const { week_start, reflection_text, user_id } = req.body;
+  const { week_start, user_id } = req.body;
+  const reflection_text = String(req.body.reflection_text).trim();
+  if (!reflection_text) return res.status(400).json({ error: 'reflection_text cannot be empty' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(week_start)) return res.status(400).json({ error: 'week_start must be YYYY-MM-DD' });
+
   const [result] = await pool.query(
     'INSERT INTO reflection (week_start, reflection_text, user_id) VALUES (?, ?, ?)',
     [week_start, reflection_text, user_id]
@@ -40,7 +44,13 @@ router.post('/', async (req, res) => {
 
 // PUT /api/reflections/:id  (update_reflection)
 router.put('/:id', async (req, res) => {
-  const { setClause, values } = buildUpdate(req.body, ['week_start', 'reflection_text']);
+  const body = { ...req.body };
+  if (body.reflection_text !== undefined) {
+    body.reflection_text = String(body.reflection_text).trim();
+    if (!body.reflection_text) return res.status(400).json({ error: 'reflection_text cannot be empty' });
+  }
+
+  const { setClause, values } = buildUpdate(body, ['week_start', 'reflection_text']);
   if (!setClause) return res.status(400).json({ error: 'No fields to update' });
 
   const [result] = await pool.query(`UPDATE reflection SET ${setClause} WHERE reflection_id = ?`, [
@@ -48,7 +58,8 @@ router.put('/:id', async (req, res) => {
     req.params.id,
   ]);
   if (result.affectedRows === 0) return res.status(404).json({ error: 'Reflection not found' });
-  res.json({ message: 'Reflection updated' });
+  const [rows] = await pool.query('SELECT * FROM reflection WHERE reflection_id = ?', [req.params.id]);
+  res.json(rows[0]);
 });
 
 // DELETE /api/reflections/:id  (delete_reflection)

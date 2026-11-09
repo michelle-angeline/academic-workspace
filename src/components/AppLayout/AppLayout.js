@@ -1,4 +1,5 @@
 import useAlertCount from '../../hooks/useAlertCount';
+import useReflectionSubmitted from '../../hooks/useReflectionSubmitted';
 import Avatar from '../Avatar';
 import {
   BellIcon,
@@ -18,6 +19,7 @@ import './AppLayout.css';
 function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, onSignOut, children }) {
   const fullName = user?.name?.trim() || 'Student';
   const alertCount = useAlertCount(workspaces);
+  const reflectionSubmitted = useReflectionSubmitted(user);
 
   return (
     <div className="dash-page">
@@ -83,11 +85,16 @@ function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, on
               </span>
             )}
           </button>
-          <a href="#reflection" className="dash-nav__item">
+          <button
+            type="button"
+            className={`dash-nav__item ${active === 'weekly-reflection' ? 'dash-nav__item--active' : ''}`}
+            aria-current={active === 'weekly-reflection' ? 'page' : undefined}
+            onClick={() => onNavigate('weekly-reflection')}
+          >
             <SproutIcon width={18} height={18} />
             Weekly Reflection
-            <span className="dash-nav__due">Sunday Due</span>
-          </a>
+            {reflectionSubmitted === false && <span className="dash-nav__due">Sunday Due</span>}
+          </button>
         </nav>
 
         <div className="dash-profile">
@@ -122,9 +129,14 @@ function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, on
             <PlusIcon width={16} height={16} />
             New Workspace
           </button>
-          <button type="button" className="dash-icon-btn dash-bell" aria-label="Notifications">
+          <button
+            type="button"
+            className="dash-icon-btn dash-bell"
+            aria-label={alertCount ? `Early alerts (${alertCount})` : 'Early alerts'}
+            onClick={() => onNavigate('early-alerts')}
+          >
             <BellIcon width={19} height={19} />
-            <span className="dash-bell__dot" />
+            {alertCount > 0 && <span className="dash-bell__dot" />}
           </button>
           <button
             type="button"
