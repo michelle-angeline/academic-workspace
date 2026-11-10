@@ -680,3 +680,67 @@ a.dash-card__link {
     align-items: flex-start;
   }
 }
+
+/* ---------- Data states (loading / empty / error) ---------- */
+.dash-empty {
+  padding: 16px;
+  border: 1.5px dashed #dfe2f0;
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.dash-load-error {
+  margin-top: 12px !important;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error-strong, #93000a);
+}
+
+.dash-stack__empty {
+  flex: 1;
+  background: #e6e9fb;
+}
+
+/* Workspace progress tiles are clickable (open the workspace) */
+.dash-page button.dash-course {
+  border: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.dash-page button.dash-course:hover {
+  background: #eef0fb;
+}
+
+.dash-page .dash-card__link--button {
+  padding: 0;
+  border: none;
+  background: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+
+.dash-page .dash-card__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.dash-page .dash-card__more:hover {
+  text-decoration: underline;
+}
