@@ -337,12 +337,6 @@ button.dash-nav__workspace--active:hover {
   white-space: nowrap;
 }
 
-.dash-profile__meta {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
 /* ---------- Top bar ---------- */
 .dash-topbar {
   position: sticky;

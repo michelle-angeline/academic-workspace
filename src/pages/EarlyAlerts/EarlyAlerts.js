@@ -18,8 +18,9 @@ import {
   SlidersIcon,
   TimerIcon,
 } from '../../components/Icons';
-import { listTasks } from '../../services/tasks';
-import { matchRules, parseDate, RULE_ORDER } from '../../utils/alertRules';
+import { markAllAlertsRead, setAlertRead, syncAlerts } from '../../services/alerts';
+import { TASKS_CHANGED_EVENT } from '../../services/tasks';
+import { parseDate, RULE_ORDER } from '../../utils/alertRules';
 import './EarlyAlerts.css';
 
 // Display settings for the four deterministic rules (see utils/alertRules.js)
@@ -83,44 +84,11 @@ function formatDate(date) {
   return `${day}, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
 }
 
-// Turns a matched rule into the text shown on the alert card
-function describe(kind, days, task) {
-  const deadline = task.deadline ? formatDate(task.deadline) : null;
-  switch (kind) {
-    case 'overdue':
-      return {
-        meta: `Deadline: ${deadline}`,
-        reason: `Deadline passed ${plural(days, 'day')} ago and the task is still in '${task.status}'.`,
-      };
-    case 'due': {
-      const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`;
-      return {
-        meta: `Deadline: ${deadline}`,
-        reason: `Target deadline is ${when} (${deadline}) and the task is still in '${task.status}'.`,
-      };
-    }
-    case 'inactive':
-      return {
-        meta: `Last updated: ${formatDate(task.lastActivity)} • ${plural(days, 'day')} ago`,
-        reason: `In '${task.status}' with no updates to the task for ${plural(days, 'day')}.`,
-      };
-    default:
-      return {
-        meta: deadline ? `Deadline: ${deadline}` : 'No deadline set',
-        reason: `Marked High priority but still in 'To Do'${deadline ? `, with the deadline on ${deadline}` : ''}.`,
-      };
-  }
-}
-
-// Read/unread is kept in this browser per user until alerts are stored in the alert table
-const readKey = (user) => `athena.readAlerts.${user?.user_id ?? 'guest'}`;
-
-function loadReadKeys(user) {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(readKey(user))) || []);
-  } catch {
-    return new Set();
-  }
+// The date line shown on the alert card (the trigger reason is the stored alert_message)
+function describeMeta(kind, days, task) {
+  if (kind === 'inactive') return `Last updated: ${formatDate(task.lastActivity)} • ${plural(days, 'day')} ago`;
+  if (task.deadline) return `Deadline: ${formatDate(task.deadline)}`;
+  return 'No deadline set';
 }
 
 // ---------- Components ----------
@@ -156,7 +124,7 @@ function AlertCard({ alert, onToggleRead, onOpen }) {
         </div>
 
         <div className="ea-alert__actions">
-          <button type="button" className="ea-btn ea-btn--soft" onClick={() => onToggleRead(alert.key)}>
+          <button type="button" className="ea-btn ea-btn--soft" onClick={() => onToggleRead(alert)}>
             {alert.read ? (
               <>
                 <MailIcon width={12} height={12} /> Mark Unread
@@ -205,66 +173,78 @@ function NotFoundCard({ kind, message }) {
 }
 
 function EarlyAlerts({ user, workspaces, onNavigate, onSignOut }) {
-  const [tasks, setTasks] = useState(null); // null while loading
+  const [rows, setRows] = useState(null); // alert rows from the database, null while loading
   const [loadError, setLoadError] = useState('');
-  const [readKeys, setReadKeys] = useState(() => loadReadKeys(user));
+  const [actionError, setActionError] = useState('');
+  const [version, setVersion] = useState(0);
   const [filter, setFilter] = useState('all'); // 'all' | 'unread' | a rule kind
   const [workspaceFilter, setWorkspaceFilter] = useState('all');
 
-  // Load the tasks of every workspace the user owns
+  // Re-sync whenever a task changes elsewhere (e.g. edited in another view)
   useEffect(() => {
-    if (!workspaces) return undefined;
+    const onChange = () => setVersion((v) => v + 1);
+    window.addEventListener(TASKS_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(TASKS_CHANGED_EVENT, onChange);
+  }, []);
+
+  // Run the alert engine on the server: it saves the alerts to the alert table and returns them
+  useEffect(() => {
+    if (!user?.user_id || !workspaces) return undefined;
     let cancelled = false;
     setLoadError('');
-    Promise.all(
-      workspaces.map((w) => listTasks(w.workspace_id).then((rows) => rows.map((row) => ({ row, workspace: w }))))
-    )
-      .then((lists) => !cancelled && setTasks(lists.flat()))
+    syncAlerts(user.user_id)
+      .then((data) => !cancelled && setRows(data))
       .catch((err) => !cancelled && setLoadError(err.message));
     return () => {
       cancelled = true;
     };
-  }, [workspaces]);
+  }, [user?.user_id, workspaces, version]);
 
-  // One alert per (task, matched rule)
+  // One card per alert row
   const alerts = useMemo(() => {
-    if (!tasks) return [];
-    return tasks.flatMap(({ row, workspace }) => {
+    if (!rows) return [];
+    return rows.map((row) => {
       const task = {
-        title: row.title,
-        status: row.status,
-        priority: row.priority,
-        deadline: parseDate(row.deadline),
-        lastActivity: parseDate(row.updated_at || row.created_at),
+        title: row.task.title,
+        status: row.task.status,
+        deadline: parseDate(row.task.deadline),
+        lastActivity: parseDate(row.task.updated_at || row.task.created_at),
       };
-      return matchRules(task).map(({ kind, days }) => {
-        const key = `${row.task_id}:${kind}`;
-        return { key, kind, task, workspace, read: readKeys.has(key), ...describe(kind, days, task) };
-      });
+      return {
+        key: row.alert_id,
+        alertId: row.alert_id,
+        kind: row.kind,
+        task,
+        workspace: { workspace_id: row.task.workspace_id, workspace_name: row.workspace_name },
+        read: Boolean(row.is_read),
+        meta: describeMeta(row.kind, row.days, task),
+        reason: row.alert_message,
+      };
     });
-  }, [tasks, readKeys]);
+  }, [rows]);
 
-  const updateReadKeys = (change) => {
-    setReadKeys((prev) => {
-      const next = change(new Set(prev));
-      try {
-        localStorage.setItem(readKey(user), JSON.stringify([...next]));
-      } catch {
-        // Storage unavailable: read state just won't survive a reload
-      }
-      return next;
+  // Read state is saved in alert.is_read; the card updates right away and rolls back on failure
+  const setRead = (ids, isRead) =>
+    setRows((prev) => prev?.map((r) => (ids.includes(r.alert_id) ? { ...r, is_read: isRead ? 1 : 0 } : r)));
+
+  const toggleRead = (alert) => {
+    const next = !alert.read;
+    setActionError('');
+    setRead([alert.alertId], next);
+    setAlertRead(alert.alertId, next).catch((err) => {
+      setRead([alert.alertId], !next);
+      setActionError(err.message);
     });
   };
-  const toggleRead = (key) =>
-    updateReadKeys((set) => {
-      if (!set.delete(key)) set.add(key);
-      return set;
+  const markAllRead = () => {
+    const unreadIds = alerts.filter((a) => !a.read).map((a) => a.alertId);
+    setActionError('');
+    setRead(unreadIds, true);
+    markAllAlertsRead(user.user_id).catch((err) => {
+      setRead(unreadIds, false);
+      setActionError(err.message);
     });
-  const markAllRead = () =>
-    updateReadKeys((set) => {
-      alerts.forEach((a) => set.add(a.key));
-      return set;
-    });
+  };
   const openWorkspace = (workspaceId) => onNavigate('workspace', workspaceId);
 
   // Header stats cover every alert; the filters, sections and chart follow the workspace dropdown
@@ -293,7 +273,7 @@ function EarlyAlerts({ user, workspaces, onNavigate, onSignOut }) {
     return `${KINDS[k].color} ${start}deg ${angle}deg`;
   }).join(', ');
 
-  const loading = !loadError && (!workspaces || !tasks);
+  const loading = !loadError && (!workspaces || !rows);
 
   return (
     <AppLayout user={user} workspaces={workspaces} active="early-alerts" onNavigate={onNavigate} onSignOut={onSignOut}>
@@ -385,6 +365,7 @@ function EarlyAlerts({ user, workspaces, onNavigate, onSignOut }) {
         <div className="ea-layout">
           <div className="ea-stream">
             {loadError && <p className="ea-status ea-status--error" role="alert">{loadError}</p>}
+            {actionError && <p className="ea-status ea-status--error" role="alert">{actionError}</p>}
             {loading && <p className="ea-status">Checking your tasks…</p>}
 
             {!loading &&
@@ -433,7 +414,7 @@ function EarlyAlerts({ user, workspaces, onNavigate, onSignOut }) {
                 <span className="ea-engine">Engine Active</span>
               </div>
               <p className="ea-panel__intro">
-                Athena checks every task in your workspaces each time this page opens, using four strict boolean
+                Athena checks every task in your workspaces each time this page opens and saves the results as alerts, using four strict boolean
                 conditions:
               </p>
               <ul className="ea-rules">

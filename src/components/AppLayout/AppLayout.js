@@ -18,7 +18,7 @@ import './AppLayout.css';
 // `activeWorkspaceId` highlights the open workspace on the Workspace page.
 function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, onSignOut, children }) {
   const fullName = user?.name?.trim() || 'Student';
-  const alertCount = useAlertCount(workspaces);
+  const alertCount = useAlertCount(user, workspaces);
   const reflectionSubmitted = useReflectionSubmitted(user);
 
   return (
@@ -101,7 +101,6 @@ function AppLayout({ user, workspaces, active, activeWorkspaceId, onNavigate, on
           <Avatar user={user} className="dash-profile__avatar" />
           <span className="dash-profile__info">
             <span className="dash-profile__name">{fullName}</span>
-            <span className="dash-profile__meta">CS, Year 3</span>
           </span>
           <button
             type="button"
