@@ -272,7 +272,7 @@ function WeeklyReflection({ user, workspaces, onNavigate, onSignOut }) {
             <strong>Weekly Reflection</strong>
           </p>
           <h1 className="wr-title">
-            Weekly Academic Reflection <span className="wr-week-badge">This Week</span>
+            Weekly Academic Reflection 
           </h1>
           <div className="wr-banner">
             <p className="wr-banner__dates">
@@ -280,7 +280,7 @@ function WeeklyReflection({ user, workspaces, onNavigate, onSignOut }) {
               {weekRange(week)}
             </p>
             <p className="wr-banner__status">
-              {thisWeek ? 'Reflection Submitted' : 'Reflection Pending'}
+              {!thisWeek && 'Reflection Pending'}
               <span className={`wr-due ${thisWeek ? 'wr-due--done' : ''}`}>
                 <span className="wr-due__dot" />
                 {thisWeek ? `Submitted ${shortDate(parseDate(thisWeek.created_at))}` : 'Due Sunday 11:59 PM'}
