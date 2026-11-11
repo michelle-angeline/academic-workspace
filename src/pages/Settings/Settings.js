@@ -326,9 +326,9 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
           </p>
           <div className="settings-header__row">
             <div>
-              <h1 className="settings-title">Account Settings &amp; Preferences</h1>
+              <h1 className="settings-title">Profile Settings &amp; Preferences</h1>
               <p className="settings-intro">
-                Manage your academic credentials, secure session authentications, and fine-tune the deterministic
+                Manage your profile, password and fine-tune the deterministic
                 early alert engine thresholds evaluating across all workspaces.
               </p>
             </div>
@@ -358,7 +358,7 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
           <div className="settings-card__head">
             <span className="settings-card__icon settings-card__icon--blue"><UserIcon width={18} height={18} /></span>
             <div>
-              <h2 className="settings-card__title">Personal Academic Profile</h2>
+              <h2 className="settings-card__title">Profile & Identity</h2>
             </div>
           </div>
 
@@ -448,7 +448,6 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
             <span className="settings-card__icon settings-card__icon--purple"><ShieldIcon width={18} height={18} /></span>
             <div>
               <h2 className="settings-card__title">Password &amp; Security</h2>
-              <p className="settings-card__subtitle">Authentication tokens, credentials, and institutional single sign-on link</p>
             </div>
           </div>
 
@@ -467,7 +466,7 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
                 id="new-password"
                 label="New Password"
                 autoComplete="new-password"
-                placeholder="Enter new strong passphrase"
+                placeholder="Enter new password"
                 value={passwords.next}
                 onChange={handlePasswordChange('next')}
                 error={passwordErrors.next}
@@ -476,7 +475,7 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
                 id="confirm-new-password"
                 label="Confirm New Password"
                 autoComplete="new-password"
-                placeholder="Confirm password"
+                placeholder="Confirm new password"
                 value={passwords.confirm}
                 onChange={handlePasswordChange('confirm')}
                 error={passwordErrors.confirm}
