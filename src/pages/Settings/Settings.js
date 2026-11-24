@@ -22,6 +22,7 @@ import {
   UploadIcon,
   UserIcon,
 } from '../../components/Icons';
+import useAlertCount from '../../hooks/useAlertCount';
 import { changePassword, removeProfilePhoto, updateProfile, uploadProfilePhoto } from '../../services/users';
 import './Settings.css';
 
@@ -54,6 +55,30 @@ function loadRules(user) {
     // Storage unavailable or corrupted: fall back to defaults
   }
   return DEFAULT_RULES;
+}
+
+// Summary line above the alert rules: how many alerts are active and which workspaces were checked.
+// alertCount is null while loading (or if the alerts could not be loaded); workspaces is null while loading.
+function describeSignal(alertCount, workspaces) {
+  if (!workspaces) {
+    return { title: 'Checking Alert Signals…', detail: 'Loading your workspaces.' };
+  }
+  if (workspaces.length === 0) {
+    return {
+      title: 'No Workspaces to Evaluate Yet',
+      detail: 'Create a workspace and add tasks to start receiving early alert signals.',
+    };
+  }
+
+  const names = workspaces.map((w) => w.workspace_name).join(', ');
+  const detail = `Evaluated across ${workspaces.length} ${workspaces.length === 1 ? 'Workspace' : 'Workspaces'} (${names})`;
+
+  if (alertCount === null) return { title: 'Checking Alert Signals…', detail };
+  if (alertCount === 0) return { title: 'No Active Alert Signals — Everything Is on Track', detail };
+  return {
+    title: `${alertCount} Active Alert ${alertCount === 1 ? 'Signal' : 'Signals'} Currently Triggered`,
+    detail,
+  };
 }
 
 // ---------- Small building blocks ----------
@@ -177,6 +202,7 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
   // Alert rules
   const [rules, setRules] = useState(() => loadRules(user));
   const [rulesMessage, setRulesMessage] = useState(null);
+  const alertCount = useAlertCount(user, workspaces);
 
   const goToTab = (id) => {
     setActiveTab(id);
@@ -313,6 +339,8 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
     setRules(DEFAULT_RULES);
     setRulesMessage({ type: 'info', text: 'Defaults restored. Click Save Alert Rules to keep them.' });
   };
+
+  const signal = describeSignal(alertCount, workspaces);
 
   return (
     <AppLayout user={user} workspaces={workspaces} active="settings" onNavigate={onNavigate} onSignOut={onSignOut}>
@@ -507,8 +535,8 @@ function Settings({ user, workspaces, onUserUpdated, onNavigate, onSignOut }) {
           <div className="settings-signal">
             <span className="settings-signal__icon"><BellIcon width={15} height={15} /></span>
             <p>
-              <strong>4 Active Alert Signals Currently Triggered</strong>
-              <span>Evaluated across 5 Workspaces (Database Systems, Capstone, HCI, Computer Networks, Applied Stats)</span>
+              <strong>{signal.title}</strong>
+              <span>{signal.detail}</span>
             </p>
           </div>
 
